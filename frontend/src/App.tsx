@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { SystemStatusPage } from './pages/SystemStatusPage';
+import { FileScannerPage } from './pages/FileScannerPage';
 import { DocumentationPage } from './pages/DocumentationPage';
 import { fetchLiveness } from './services/api';
 
 export const App: React.FC = () => {
-  const [currentTab, setCurrentTab] = useState<'status' | 'docs'>('status');
+  const [currentTab, setCurrentTab] = useState<'status' | 'scanner' | 'docs'>('scanner');
   const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
 
   useEffect(() => {
@@ -32,7 +33,13 @@ export const App: React.FC = () => {
       />
 
       <main style={{ flex: 1 }}>
-        {currentTab === 'status' ? <SystemStatusPage /> : <DocumentationPage />}
+        {currentTab === 'scanner' ? (
+          <FileScannerPage />
+        ) : currentTab === 'status' ? (
+          <SystemStatusPage />
+        ) : (
+          <DocumentationPage />
+        )}
       </main>
 
       <footer style={{
@@ -51,7 +58,7 @@ export const App: React.FC = () => {
           <span>SentinelDLP Platform &copy; 2026. Defensive Cybersecurity Architecture.</span>
         </div>
         <div style={{ display: 'flex', gap: '1rem', fontFamily: 'var(--font-mono)' }}>
-          <span>Phase 1 Baseline</span>
+          <span>Phase 2: File Scanner Active</span>
           <span>•</span>
           <span>Security-First Defaults</span>
         </div>

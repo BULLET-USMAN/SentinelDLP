@@ -4,194 +4,105 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-green.svg)](https://fastapi.tiangolo.com/)
 [![React 18](https://img.shields.io/badge/React-18.3-blue.svg)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4-blue.svg)](https://www.typescriptlang.org/)
-[![Alembic](https://img.shields.io/badge/Alembic-1.13-orange.svg)](https://alembic.sqlalchemy.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Alembic](https://img.shields.io/badge/Alembic-1.20-orange.svg)](https://alembic.sqlalchemy.org/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](https://www.docker.com/)
 
 ---
 
 ## 1. Project Overview
 
-**SentinelDLP** is an enterprise-grade defensive cybersecurity platform designed to monitor authorized endpoint activity, classify and safeguard sensitive intellectual property, detect suspicious data exfiltration attempts, and provide AI-assisted security investigations for Security Operations Center (SOC) teams.
-
-### Core Objectives
-- **Defensive Data Loss Prevention (DLP)**: Prevent unauthorized leaks of sensitive corporate data (PII, credentials, proprietary source code).
-- **Behavioral & Heuristic Exfiltration Detection**: Identify abnormal file movement, bulk clipboard transfers, and suspicious outbound data channels.
-- **AI-Assisted Threat Investigation**: Provide structured risk analysis and contextual telemetry for incident responders.
-- **Security-First Architecture**: Enforce zero hardcoded credentials, non-root containers, restricted CORS policies, and centralized exception sanitization.
+**SentinelDLP** is an enterprise-grade defensive cybersecurity platform designed to monitor authorized endpoint activity, discover and inventory corporate data assets, identify sensitive intellectual property, detect suspicious data exfiltration attempts, and provide AI-assisted security investigations for SOC teams.
 
 ---
 
-## 2. Current Development Posture: Phase 1 Complete
+## 2. Current Posture: Phase 2 Complete
 
-> **IMPORTANT**: In adherence to the engineering roadmap, **Phase 1 (Foundation, Backend Architecture & Development Environment)** is complete. 
-> Detection engines, file monitoring agents, and AI components are scheduled for subsequent phases and are currently represented as strict, inactive architectural placeholders. No simulated or fabricated security incidents are generated.
+- **Phase 1 (Foundation & Infrastructure)**: Completed & Verified.
+- **Phase 2 (Intelligent File Scanner & Inventory System)**: Completed & Verified.
+  - Secure directory discovery with traversal and symlink escape defenses.
+  - Streaming SHA-256 cryptographic hashing (64KB buffer).
+  - File type classification across Documents, Structured Data, Code, Config, Images, and Archives.
+  - Extension vs content-signature (magic bytes) discrepancy detection (`type_mismatch` flag).
+  - Background asynchronous execution worker with real-time cancellation tokens.
+  - PostgreSQL persistence (`scan_jobs` and `scanned_files` tables via Alembic).
+  - React/TypeScript operational dashboard with real-time statistics, search, filtering, and copyable hashes.
+
+> **Scope Note**: In adherence to Phase 2 boundaries, content extraction, pattern-matching inspection, and AI analysis are reserved for subsequent phases. No fake alerts are generated.
 
 ---
 
 ## 3. Technology Stack
 
 ### Backend
-- **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (Asynchronous ASGI Web Framework)
-- **Validation & Settings**: [Pydantic v2](https://docs.pydantic.dev/) & [Pydantic-Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/)
-- **ORM & Database Driver**: [SQLAlchemy 2.0](https://www.sqlalchemy.org/) & [psycopg2-binary](https://www.psycopg.org/)
-- **Database Migrations**: [Alembic](https://alembic.sqlalchemy.org/)
-- **Server**: [Uvicorn](https://www.uvicorn.org/) (High-performance ASGI server)
-- **Relational Datastore**: PostgreSQL 16
+- **Framework**: FastAPI (Asynchronous Web API)
+- **Settings & Validation**: Pydantic v2 & Pydantic-Settings
+- **ORM & Migrations**: SQLAlchemy 2.0 & Alembic
+- **Database**: PostgreSQL 16 (Alpine)
+- **Server**: Uvicorn ASGI
 
 ### Frontend
-- **Library**: [React 18](https://react.dev/)
-- **Language**: [TypeScript 5.4](https://www.typescriptlang.org/)
-- **Build Tool**: [Vite 5](https://vitejs.dev/)
-- **Styling**: Cybersecurity Dark Theme with subtle green accents (`#10b981`)
+- **Framework**: React 18 & TypeScript 5.4
+- **Tooling**: Vite 5
+- **Design**: Professional Cybersecurity Dark Theme (`#0a0e17` / `#10b981` accents)
 
-### Infrastructure & Tooling
-- **Containerization**: Multi-stage Docker & Docker Compose
-- **Testing**: Pytest & FastAPI TestClient / HTTPX
-
----
-
-## 4. Repository Architecture
-
-```text
-SentinelDLP/
-├── backend/
-│   ├── app/
-│   │   ├── api/
-│   │   │   └── v1/
-│   │   │       ├── endpoints/
-│   │   │       │   ├── health.py               # Liveness & readiness endpoints
-│   │   │       │   └── placeholder_detection.py# Explicit Phase 2+ placeholders
-│   │   │       └── router.py                   # Central API v1 router
-│   │   ├── core/
-│   │   │   ├── config.py                       # Pydantic Settings & credential masking
-│   │   │   ├── exceptions.py                   # Centralized error sanitization
-│   │   │   └── logging.py                      # Structured JSON logging
-│   │   ├── db/
-│   │   │   ├── base.py                         # SQLAlchemy declarative base
-│   │   │   └── session.py                      # Engine & database probe
-│   │   ├── models/
-│   │   │   └── system.py                       # Baseline system audit records
-│   │   ├── schemas/
-│   │   │   └── health.py                       # Request/response validation schemas
-│   │   ├── services/
-│   │   │   └── health_service.py               # Health verification logic
-│   │   └── main.py                             # FastAPI entry point & lifespan
-│   ├── alembic/
-│   │   ├── versions/
-│   │   │   └── 0001_initial_schema.py          # Initial database migration
-│   │   └── env.py                              # Dynamic Alembic environment
-│   ├── tests/
-│   │   ├── conftest.py                         # Test fixtures & TestClient
-│   │   ├── test_config.py                      # Settings & masking tests
-│   │   ├── test_errors.py                      # Error handling & status tests
-│   │   └── test_health.py                      # Mocked & live health tests
-│   ├── Dockerfile                              # Multi-stage non-root container
-│   ├── alembic.ini                             # Migration configuration
-│   └── requirements.txt                        # Backend dependencies
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Navbar.tsx                      # Cybersecurity application shell
-│   │   │   └── StatusCard.tsx                  # System status metric card
-│   │   ├── pages/
-│   │   │   ├── SystemStatusPage.tsx            # Live health & dependency monitor
-│   │   │   └── DocumentationPage.tsx           # Architecture & roadmap viewer
-│   │   ├── services/
-│   │   │   └── api.ts                          # Real health API client
-│   │   ├── types/
-│   │   │   └── health.ts                       # TypeScript interfaces
-│   │   ├── App.tsx                             # Shell controller
-│   │   ├── index.css                           # Dark theme styles
-│   │   └── main.tsx                            # React entry point
-│   ├── Dockerfile                              # Hardened Nginx container
-│   ├── nginx.conf                              # Nginx reverse proxy & headers
-│   ├── package.json                            # Frontend dependencies
-│   ├── tsconfig.json                           # TypeScript configuration
-│   └── vite.config.ts                          # Vite build & proxy settings
-├── docs/
-│   ├── architecture/
-│   │   └── phase-1-architecture.md             # Detailed technical architecture
-│   └── development/
-│       ├── setup-windows.md                    # Windows 11 setup guide
-│       └── testing-guide.md                    # Automated testing guide
-├── scripts/
-│   ├── run_local.ps1                           # One-click Windows dev runner
-│   ├── test_backend.ps1                        # Pytest automation runner
-│   └── migrate.ps1                             # Alembic migration utility
-├── docker-compose.yml                          # Container orchestration
-├── .env.example                                # Configuration template (no credentials)
-├── .gitignore                                  # Comprehensive Git exclusions
-└── README.md
-```
+### Container Architecture
+- **Multi-stage Docker** configurations running under non-root users (`sentinel` UID 1001, and `nginx` non-root user).
+- **Internal service networking** and persistent named volumes.
 
 ---
 
-## 5. Quick Start (Windows 11)
+## 4. API Endpoints
 
-### 5.1 Prerequisites
-- Python 3.11+ (Python 3.12 recommended)
-- Node.js 18+ and npm
-- Git
+### Health & Monitoring
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/health/live` | Application process liveness probe |
+| `GET` | `/health/ready` | Dependency readiness probe (PostgreSQL connectivity) |
 
-### 5.2 Environment Configuration
-Copy the configuration template to `.env`:
+### Scanner & Inventory (Phase 2)
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/v1/scanner/roots` | List administrator-configured authorized scan roots |
+| `POST` | `/api/v1/scans` | Start background file scan job on an authorized root |
+| `GET` | `/api/v1/scans` | List historical scan runs |
+| `GET` | `/api/v1/scans/{scan_id}` | Get status and metrics of a scan job |
+| `GET` | `/api/v1/scans/{scan_id}/files` | Paginated file inventory with search & mismatch filter |
+| `POST` | `/api/v1/scans/{scan_id}/cancel` | Cancel an ongoing scan job |
+
+---
+
+## 5. Quick Start (Windows 11 & Docker)
+
+### Option A: Docker Compose (Recommended)
 ```powershell
-Copy-Item .env.example .env
+# Build and run complete stack
+docker compose up --build -d
+
+# Check service health
+docker compose ps
 ```
+- **File Scanner Dashboard**: [http://localhost:5173](http://localhost:5173)
+- **API Swagger Documentation**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **System Health Monitor**: [http://localhost:8000/health/ready](http://localhost:8000/health/ready)
 
-### 5.3 Backend Setup
+### Option B: Local Python & Node Execution
 ```powershell
-# Create virtual environment
+# Backend
 python -m venv .venv
-
-# Install dependencies
-.\.venv\Scripts\pip.exe install -r backend\requirements.txt
-
-# Run automated tests
-.\.venv\Scripts\python.exe -m pytest -v backend\tests
-
-# Start backend server
+.\.venv\Scripts\pip install -r backend\requirements.txt
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --port 8000 --host 127.0.0.1 --reload
-```
-- API Documentation: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-- Liveness Probe: [http://127.0.0.1:8000/health/live](http://127.0.0.1:8000/health/live)
-- Readiness Probe: [http://127.0.0.1:8000/health/ready](http://127.0.0.1:8000/health/ready)
 
-### 5.4 Frontend Setup
-```powershell
+# Frontend
 cd frontend
 npm.cmd install
 npm.cmd run dev
 ```
-- Frontend UI: [http://localhost:5173](http://localhost:5173)
 
 ---
 
-## 6. Docker Deployment
+## 6. Running Automated Tests
 
-When Docker and Docker Compose are installed:
-
-```powershell
-# Build and start all services
-docker compose up --build -d
-
-# View container logs
-docker compose logs -f backend
-
-# Stop services
-docker compose down
-```
-
-### Container Security Features
-- **Non-Root Execution**: Backend runs under UID 1001 (`sentinel`); Frontend runs under `nginx` non-root user.
-- **Port Isolation**: PostgreSQL is bound strictly to `127.0.0.1` and internal Docker networks.
-- **Container Healthchecks**: Automatic health validation before depending services start.
-
----
-
-## 7. Running Automated Tests
-
-Run the full pytest suite:
+Run the full pytest suite (29 tests):
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -v backend\tests
@@ -199,36 +110,23 @@ Run the full pytest suite:
 
 Or using the helper script:
 ```powershell
-.\scripts\test_backend.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\test_backend.ps1
 ```
 
-All 12 unit and endpoint tests run in <0.2 seconds, covering:
-1. Application initialization and root metadata.
-2. Root and versioned `/health/live` probes.
-3. Database readiness when operational (mocked).
-4. Database readiness when unavailable (503 Service Unavailable, mocked).
-5. Settings parsing and credential masking in connection strings.
-6. Error handling and placeholder endpoint rejection (501 Not Implemented).
+All 29 tests validate:
+- Known SHA-256 cryptographic test vectors and memory streaming chunking.
+- Detection of all supported file types and magic number discrepancies.
+- Security boundary enforcement (traversal and symlink escape attempts).
+- Real-time cancellation tokens.
+- End-to-end scan lifecycle, database persistence, pagination, and mismatch filtering.
 
 ---
 
-## 8. Troubleshooting
-
-| Issue | Cause | Solution |
-|---|---|---|
-| `PSSecurityException` running `npm` | Windows PowerShell execution policy | Run `npm.cmd` directly or configure `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned` |
-| `/health/ready` returns HTTP 503 | PostgreSQL is not currently running | Expected during standalone backend runs without a local DB. Start Postgres or Docker Compose. |
-| Port 8000 or 5173 already in use | Previous process still bound to port | Run `Get-NetTCPConnection -LocalPort 8000` and stop the conflicting PID. |
-
----
-
-## 9. Development Roadmap
+## 7. Roadmap
 
 - **[COMPLETED] Phase 1: Project Foundation & Architecture**
-  - Modular monorepo, FastAPI backend, SQLAlchemy/Alembic, React/TS frontend, Docker Compose, structured JSON logging, zero-secret hygiene.
-- **[NEXT] Phase 2: Core Detection Engine**
-  - Sensitive file classification (Regex, entropy, keyword matching), file hash calculation, pattern matching.
-- **[FUTURE] Phase 3: Exfiltration Heuristics**
-  - Endpoint monitoring, volume anomaly detection, suspicious USB/cloud transfer heuristic indicators.
-- **[FUTURE] Phase 4: AI Security Assistant**
-  - Contextual LLM analysis, automated threat summarization, guided remediation workflows.
+- **[COMPLETED] Phase 2: Intelligent File Scanning Engine & Inventory System**
+- **[PLANNED] Phase 3: Content Inspection & Sensitive Data Classification**
+  - Regular expression patterns (PII, credentials, API keys), high-entropy token detection, custom rule engine.
+- **[PLANNED] Phase 4: Exfiltration Heuristics & Behavioral Monitoring**
+- **[PLANNED] Phase 5: AI-Assisted Security Investigation**

@@ -1,8 +1,8 @@
 import React from 'react';
 
 interface NavbarProps {
-  currentTab: 'status' | 'docs';
-  onSelectTab: (tab: 'status' | 'docs') => void;
+  currentTab: 'status' | 'scanner' | 'docs';
+  onSelectTab: (tab: 'status' | 'scanner' | 'docs') => void;
   isBackendConnected: boolean;
 }
 
@@ -45,12 +45,12 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, isBacke
               fontWeight: 600,
               padding: '0.15rem 0.4rem',
               borderRadius: '4px',
-              backgroundColor: 'rgba(56, 189, 248, 0.1)',
-              color: 'var(--accent-blue)',
-              border: '1px solid rgba(56, 189, 248, 0.25)',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              color: 'var(--accent-green)',
+              border: '1px solid rgba(16, 185, 129, 0.25)',
               textTransform: 'uppercase',
             }}>
-              Phase 1 Core
+              Phase 2 Active
             </span>
           </div>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
@@ -60,6 +60,21 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, isBacke
       </div>
 
       <nav style={{ display: 'flex', gap: '0.5rem' }}>
+        <button
+          onClick={() => onSelectTab('scanner')}
+          style={{
+            padding: '0.5rem 1rem',
+            borderRadius: '6px',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+            transition: 'all 0.2s ease',
+            backgroundColor: currentTab === 'scanner' ? 'var(--bg-tertiary)' : 'transparent',
+            color: currentTab === 'scanner' ? 'var(--text-primary)' : 'var(--text-secondary)',
+            border: currentTab === 'scanner' ? '1px solid var(--border-active)' : '1px solid transparent',
+          }}
+        >
+          File Scanner & Inventory
+        </button>
         <button
           onClick={() => onSelectTab('status')}
           style={{
