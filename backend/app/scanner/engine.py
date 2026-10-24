@@ -14,6 +14,11 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.logging import logger
 from app.db.session import SessionLocal
+from app.detection.engine import detection_engine
+from app.detection.classification import POLICY_VERSION
+from app.detection.extractors import InspectionStatus
+from app.detection.rules import DetectionCategory, SensitivityLevel
+from app.models.detection import DetectionFinding, FileClassification, ScanDetectionSummary
 from app.models.scanner import ScanJob, ScannedFile
 from app.scanner.discovery import ScanCancelledException, discover_files
 from app.scanner.metadata import extract_file_metadata
@@ -104,6 +109,19 @@ class ScanEngine:
         final_status = "completed"
         error_message = None
 
+        # Phase 3: Aggregated detection metrics
+        files_inspected = 0
+        sensitive_files_count = 0
+        public_count = 0
+        internal_count = 0
+        confidential_count = 0
+        restricted_count = 0
+        not_assessed_count = 0
+        pii_count = 0
+        credential_count = 0
+        financial_count = 0
+        confidential_label_count = 0
+
         with SessionLocal() as db:
             # Transition status from pending to running
             job = db.query(ScanJob).filter(ScanJob.id == scan_id).first()
@@ -139,6 +157,7 @@ class ScanEngine:
                         # File path boundary or permission issue caught during discovery
                         skipped_count += 1
                         error_count += 1
+                        not_assessed_count += 1
                         scanned_record = ScannedFile(
                             id=str(uuid.uuid4()),
                             scan_job_id=scan_id,
@@ -152,6 +171,17 @@ class ScanEngine:
                             scan_timestamp=datetime.now(timezone.utc),
                         )
                         db.add(scanned_record)
+                        classification_record = FileClassification(
+                            id=str(uuid.uuid4()),
+                            scanned_file_id=scanned_record.id,
+                            sensitivity_label=SensitivityLevel.NOT_ASSESSED.value,
+                            policy_version=POLICY_VERSION,
+                            classified_at=datetime.now(timezone.utc),
+                            inspection_status="skipped",
+                            explanation=f"Skipped during discovery: {skip_reason}",
+                            highest_confidence="N/A",
+                        )
+                        db.add(classification_record)
                         continue
 
                     # Extract file metadata and hash
@@ -161,14 +191,6 @@ class ScanEngine:
                         compute_hash=True,
                         max_size_bytes=settings.MAX_FILE_SIZE_BYTES,
                     )
-
-                    if meta.status == "scanned":
-                        processed_count += 1
-                        total_bytes += meta.size_bytes
-                    elif meta.status == "skipped":
-                        skipped_count += 1
-                    else:
-                        error_count += 1
 
                     scanned_record = ScannedFile(
                         id=str(uuid.uuid4()),
@@ -187,6 +209,79 @@ class ScanEngine:
                         type_mismatch=meta.type_mismatch,
                     )
                     db.add(scanned_record)
+
+                    if meta.status == "scanned":
+                        processed_count += 1
+                        total_bytes += meta.size_bytes
+
+                        # Phase 3: Content inspection & sensitivity classification
+                        analysis = detection_engine.inspect_and_classify_file(file_path, meta.file_extension)
+                        if analysis.inspection_status in (InspectionStatus.INSPECTED, InspectionStatus.PARTIAL):
+                            files_inspected += 1
+
+                        label_val = analysis.classification.sensitivity_label.value
+                        if label_val == SensitivityLevel.RESTRICTED.value:
+                            restricted_count += 1
+                            sensitive_files_count += 1
+                        elif label_val == SensitivityLevel.CONFIDENTIAL.value:
+                            confidential_count += 1
+                            sensitive_files_count += 1
+                        elif label_val == SensitivityLevel.INTERNAL.value:
+                            internal_count += 1
+                        elif label_val == SensitivityLevel.PUBLIC.value:
+                            public_count += 1
+                        else:
+                            not_assessed_count += 1
+
+                        classification_record = FileClassification(
+                            id=str(uuid.uuid4()),
+                            scanned_file_id=scanned_record.id,
+                            sensitivity_label=label_val,
+                            policy_version=analysis.classification.policy_version,
+                            classified_at=datetime.now(timezone.utc),
+                            inspection_status=analysis.inspection_status.value,
+                            explanation=analysis.classification.explanation,
+                            highest_confidence=analysis.classification.highest_confidence,
+                        )
+                        db.add(classification_record)
+
+                        for finding in analysis.findings:
+                            f_record = DetectionFinding(
+                                id=str(uuid.uuid4()),
+                                scanned_file_id=scanned_record.id,
+                                rule_id=finding.rule_id,
+                                rule_version="1.0.0",
+                                category=finding.category.value,
+                                confidence=finding.confidence.value,
+                                occurrence_count=finding.occurrence_count,
+                                detected_at=datetime.now(timezone.utc),
+                            )
+                            db.add(f_record)
+                            if finding.category == DetectionCategory.PII:
+                                pii_count += finding.occurrence_count
+                            elif finding.category == DetectionCategory.CREDENTIALS:
+                                credential_count += finding.occurrence_count
+                            elif finding.category == DetectionCategory.FINANCIAL:
+                                financial_count += finding.occurrence_count
+                            elif finding.category == DetectionCategory.DOCUMENT_LABEL:
+                                confidential_label_count += finding.occurrence_count
+                    else:
+                        if meta.status == "skipped":
+                            skipped_count += 1
+                        else:
+                            error_count += 1
+                        not_assessed_count += 1
+                        classification_record = FileClassification(
+                            id=str(uuid.uuid4()),
+                            scanned_file_id=scanned_record.id,
+                            sensitivity_label=SensitivityLevel.NOT_ASSESSED.value,
+                            policy_version=POLICY_VERSION,
+                            classified_at=datetime.now(timezone.utc),
+                            inspection_status=meta.status,
+                            explanation=f"File not inspected due to status: {meta.status} ({meta.error_message or 'n/a'}).",
+                            highest_confidence="N/A",
+                        )
+                        db.add(classification_record)
 
                     # Periodic commit to prevent large transactions
                     if (processed_count + skipped_count + error_count) % 50 == 0:
@@ -210,6 +305,25 @@ class ScanEngine:
                 job.error_count = error_count
                 job.total_bytes_processed = total_bytes
                 job.error_message = error_message
+
+                # Phase 3: Persist ScanDetectionSummary
+                detection_summary = ScanDetectionSummary(
+                    id=str(uuid.uuid4()),
+                    scan_job_id=scan_id,
+                    files_inspected=files_inspected,
+                    sensitive_files_count=sensitive_files_count,
+                    public_count=public_count,
+                    internal_count=internal_count,
+                    confidential_count=confidential_count,
+                    restricted_count=restricted_count,
+                    not_assessed_count=not_assessed_count,
+                    pii_count=pii_count,
+                    credential_count=credential_count,
+                    financial_count=financial_count,
+                    confidential_label_count=confidential_label_count,
+                    created_at=datetime.now(timezone.utc),
+                )
+                db.add(detection_summary)
                 db.commit()
 
                 # Clean up active cancellation registration

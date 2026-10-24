@@ -1,0 +1,3 @@
+customer_id,full_name,cnic,contact_phone,email_address
+CUST-001,Ahmed Khan,35201-1234567-1,03001234567,ahmed.khan@corp-internal.pk
+CUST-002,Fatima Tariq,42101-7654321-3,+92-321-9876543,fatima.tariq@acme-corp.com

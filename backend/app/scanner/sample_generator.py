@@ -142,6 +142,74 @@ def generate_synthetic_samples(target_dir: Path) -> None:
         encoding="utf-8",
     )
 
+    # 6. Phase 3: Synthetic Sensitive Data Files (Defensive Test Vectors)
+    # PII Sample: Pakistani CNIC, Mobile Phone, and Corporate Email
+    (target_dir / "customer_pii_roster.csv").write_text(
+        "customer_id,full_name,cnic,contact_phone,email_address\n"
+        "CUST-001,Ahmed Khan,35201-1234567-1,03001234567,ahmed.khan@corp-internal.pk\n"
+        "CUST-002,Fatima Tariq,42101-7654321-3,+92-321-9876543,fatima.tariq@acme-corp.com\n",
+        encoding="utf-8",
+    )
+
+    # Credentials Sample: AWS Access Key, DB Connection String, and Hardcoded Password
+    (target_dir / "cloud_credentials_backup.env").write_text(
+        "# Synthetic configuration with dummy credential patterns\n"
+        "AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE\n"
+        "DATABASE_URL=postgresql://dbadmin:Sup3rS3cur3P@ssw0rd!@10.0.0.15:5432/proddb\n"
+        'API_SECRET_KEY="SuperSecretP@ssw0rd2026!"\n',
+        encoding="utf-8",
+    )
+
+    # Private Key Sample: Synthetic RSA Key Block
+    (target_dir / "server_private_key.pem").write_text(
+        "-----BEGIN RSA PRIVATE KEY-----\n"
+        "MIIEowIBAAKCAQEA0mYFakeKeySyntheticOnlyDoNotUse1234567890ABCDEF\n"
+        "GhIjKlMnOpQrStUvWxYz0123456789+abcdefghijklmnopqrstuvwxyzABCDEF\n"
+        "-----END RSA PRIVATE KEY-----\n",
+        encoding="utf-8",
+    )
+
+    # Financial Sample: Luhn-valid Card, Mod-97 Valid Pakistani IBAN, and Financial Keywords
+    sample_financial = {
+        "statement_period": "Q3 2026",
+        "settlement_account": "PK36SCBL0000001123456702",
+        "corporate_procurement_card": "4532015112830366",
+        "payroll_summary": {
+            "total_salary_disbursement": 8500000,
+            "bonus_allocation": 1200000,
+            "tax_withheld": 750000,
+        },
+        "balance_sheet_status": "audited",
+    }
+    (target_dir / "financial_audit_extract.json").write_text(
+        json.dumps(sample_financial, indent=2),
+        encoding="utf-8",
+    )
+
+    # Document Labels Sample: Confidentiality Marker
+    (target_dir / "board_meeting_minutes.txt").write_text(
+        "CONFIDENTIAL - STRICTLY FOR INTERNAL DIRECTORS ONLY\n\n"
+        "Meeting Minutes: Executive Strategy & Product Roadmap\n"
+        "RESTRICTED DISTRIBUTION: Any unauthorized copying, distribution, or forwarding is strictly prohibited.\n"
+        "All corporate intellectual property and trade secrets discussed remain proprietary.\n",
+        encoding="utf-8",
+    )
+
+    # Valid DOCX Sample with XML document structure containing sensitive markers
+    docx_path = target_dir / "executive_compensation.docx"
+    doc_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+        '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">\n'
+        '  <w:body>\n'
+        '    <w:p><w:r><w:t>RESTRICTED &amp; CONFIDENTIAL - EXECUTIVE SALARY &amp; COMPENSATION AUDIT</w:t></w:r></w:p>\n'
+        '    <w:p><w:r><w:t>FY2026 Annual executive payroll review and pension distribution ledger.</w:t></w:r></w:p>\n'
+        '  </w:body>\n'
+        '</w:document>'
+    )
+    with zipfile.ZipFile(docx_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("[Content_Types].xml", '<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"></Types>')
+        zf.writestr("word/document.xml", doc_xml)
+
 
 if __name__ == "__main__":
     import sys

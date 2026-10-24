@@ -53,6 +53,12 @@ class ScanJob(Base):
         cascade="all, delete-orphan",
         order_by="ScannedFile.relative_path",
     )
+    detection_summary = relationship(
+        "ScanDetectionSummary",
+        back_populates="scan_job",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
 
     def __repr__(self) -> str:
         return f"<ScanJob(id='{self.id}', root_id='{self.root_id}', status='{self.status}')>"
@@ -96,6 +102,17 @@ class ScannedFile(Base):
 
     # Relationships
     scan_job = relationship("ScanJob", back_populates="files")
+    detection_findings = relationship(
+        "DetectionFinding",
+        back_populates="scanned_file",
+        cascade="all, delete-orphan",
+    )
+    classification = relationship(
+        "FileClassification",
+        back_populates="scanned_file",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
 
     __table_args__ = (
         Index("ix_scanned_files_job_status", "scan_job_id", "status"),

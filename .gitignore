@@ -41,6 +41,7 @@ venv.bak/
 .env.*.local
 *.env
 !*.env.example
+!sample_data/*.env
 
 # IDE & editors
 .vscode/

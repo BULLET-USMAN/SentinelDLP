@@ -1,0 +1,11 @@
+{
+  "statement_period": "Q3 2026",
+  "settlement_account": "PK36SCBL0000001123456702",
+  "corporate_procurement_card": "4532015112830366",
+  "payroll_summary": {
+    "total_salary_disbursement": 8500000,
+    "bonus_allocation": 1200000,
+    "tax_withheld": 750000
+  },
+  "balance_sheet_status": "audited"
+}

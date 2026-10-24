@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
-import { SystemStatusPage } from './pages/SystemStatusPage';
+import { SensitiveDataPage } from './pages/SensitiveDataPage';
 import { FileScannerPage } from './pages/FileScannerPage';
+import { SystemStatusPage } from './pages/SystemStatusPage';
 import { DocumentationPage } from './pages/DocumentationPage';
 import { fetchLiveness } from './services/api';
 
 export const App: React.FC = () => {
-  const [currentTab, setCurrentTab] = useState<'status' | 'scanner' | 'docs'>('scanner');
+  const [currentTab, setCurrentTab] = useState<'detection' | 'scanner' | 'status' | 'docs'>('detection');
   const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
 
   useEffect(() => {
@@ -33,7 +34,9 @@ export const App: React.FC = () => {
       />
 
       <main style={{ flex: 1 }}>
-        {currentTab === 'scanner' ? (
+        {currentTab === 'detection' ? (
+          <SensitiveDataPage />
+        ) : currentTab === 'scanner' ? (
           <FileScannerPage />
         ) : currentTab === 'status' ? (
           <SystemStatusPage />
@@ -58,9 +61,9 @@ export const App: React.FC = () => {
           <span>SentinelDLP Platform &copy; 2026. Defensive Cybersecurity Architecture.</span>
         </div>
         <div style={{ display: 'flex', gap: '1rem', fontFamily: 'var(--font-mono)' }}>
-          <span>Phase 2: File Scanner Active</span>
+          <span>Phase 3: Sensitive Data Engine Active</span>
           <span>•</span>
-          <span>Security-First Defaults</span>
+          <span>Zero-Leakage Guarantee</span>
         </div>
       </footer>
     </div>

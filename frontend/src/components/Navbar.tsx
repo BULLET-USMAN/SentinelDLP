@@ -1,8 +1,8 @@
 import React from 'react';
 
 interface NavbarProps {
-  currentTab: 'status' | 'scanner' | 'docs';
-  onSelectTab: (tab: 'status' | 'scanner' | 'docs') => void;
+  currentTab: 'detection' | 'scanner' | 'status' | 'docs';
+  onSelectTab: (tab: 'detection' | 'scanner' | 'status' | 'docs') => void;
   isBackendConnected: boolean;
 }
 
@@ -50,16 +50,34 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, isBacke
               border: '1px solid rgba(16, 185, 129, 0.25)',
               textTransform: 'uppercase',
             }}>
-              Phase 2 Active
+              Phase 3 Active
             </span>
           </div>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-            Data Loss Prevention & Exfiltration Detection
+            AI-Powered Data Loss Prevention & Exfiltration Detection
           </p>
         </div>
       </div>
 
       <nav style={{ display: 'flex', gap: '0.5rem' }}>
+        <button
+          onClick={() => onSelectTab('detection')}
+          style={{
+            padding: '0.5rem 1rem',
+            borderRadius: '6px',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            transition: 'all 0.2s ease',
+            backgroundColor: currentTab === 'detection' ? 'var(--bg-tertiary)' : 'transparent',
+            color: currentTab === 'detection' ? 'var(--accent-green)' : 'var(--text-secondary)',
+            border: currentTab === 'detection' ? '1px solid var(--accent-green)' : '1px solid transparent',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+          }}
+        >
+          <span>🛡️</span> Sensitive Data
+        </button>
         <button
           onClick={() => onSelectTab('scanner')}
           style={{

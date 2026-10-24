@@ -1,7 +1,7 @@
 """API v1 Router Definition for SentinelDLP."""
 
 from fastapi import APIRouter
-from app.api.v1.endpoints import health, placeholder_detection, scans
+from app.api.v1.endpoints import detection, health, placeholder_detection, scans
 
 api_v1_router = APIRouter()
 
@@ -18,9 +18,15 @@ api_v1_router.include_router(
     tags=["File Scanner & Inventory"],
 )
 
-# Placeholder detection routes (Phase 3+)
+# Phase 3: Sensitive Data Detection & Classification routes
+api_v1_router.include_router(
+    detection.router,
+    tags=["Sensitive Data Detection"],
+)
+
+# Placeholder detection routes (Phase 1 legacy compatibility)
 api_v1_router.include_router(
     placeholder_detection.router,
     prefix="/detection",
-    tags=["Detection Engine (Phase 3+ Placeholder)"],
+    tags=["Detection Engine (Phase 1 Compatibility)"],
 )

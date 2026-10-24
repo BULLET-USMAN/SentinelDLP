@@ -4,6 +4,13 @@ import {
   PaginatedFilesResponse,
   ScanJobSummary,
 } from '../types/scanner';
+import {
+  DetectionRuleInfo,
+  FileClassificationDetail,
+  PaginatedClassifiedFilesResponse,
+  PaginatedFindingsResponse,
+  SensitivitySummaryResponse,
+} from '../types/detection';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
@@ -121,6 +128,85 @@ export async function cancelScanJob(scanId: string): Promise<{ status: string; m
   });
   if (!response.ok) {
     throw new Error(`Failed to cancel scan (${response.status})`);
+  }
+  return response.json();
+}
+
+// =========================================================================
+// Phase 3 Detection & Classification API Calls
+// =========================================================================
+
+export async function fetchDetectionRules(): Promise<DetectionRuleInfo[]> {
+  const url = `${API_BASE_URL}/api/v1/detection/rules`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load detection rules (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchSensitivitySummary(scanId: string): Promise<SensitivitySummaryResponse> {
+  const url = `${API_BASE_URL}/api/v1/scans/${scanId}/sensitivity-summary`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load sensitivity summary (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchScanFindings(
+  scanId: string,
+  page: number = 1,
+  size: number = 50,
+  category?: string,
+  confidence?: string
+): Promise<PaginatedFindingsResponse> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+  });
+  if (category) params.append('category', category);
+  if (confidence) params.append('confidence', confidence);
+
+  const url = `${API_BASE_URL}/api/v1/scans/${scanId}/findings?${params.toString()}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load findings (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchClassifiedFiles(
+  scanId: string,
+  page: number = 1,
+  size: number = 25,
+  sensitivity?: string,
+  category?: string,
+  search?: string,
+  highestConfidence?: string
+): Promise<PaginatedClassifiedFilesResponse> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+  });
+  if (sensitivity) params.append('sensitivity', sensitivity);
+  if (category) params.append('category', category);
+  if (search) params.append('search', search);
+  if (highestConfidence) params.append('highest_confidence', highestConfidence);
+
+  const url = `${API_BASE_URL}/api/v1/scans/${scanId}/classified-files?${params.toString()}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load classified files (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchFileClassificationDetail(fileId: string): Promise<FileClassificationDetail> {
+  const url = `${API_BASE_URL}/api/v1/files/${fileId}/classification`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load file classification detail (${response.status})`);
   }
   return response.json();
 }
