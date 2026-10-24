@@ -1,0 +1,3 @@
+asset_id,department,sensitivity_level,assigned_user
+AST-1001,Engineering,Confidential,user_test_1@corp.local
+AST-1002,Operations,Internal,user_test_2@corp.local

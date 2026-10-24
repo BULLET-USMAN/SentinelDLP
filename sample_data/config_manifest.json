@@ -1,0 +1,11 @@
+{
+  "platform": "SentinelDLP",
+  "phase": 2,
+  "sample_metric": 42,
+  "classification_standards": [
+    "Public",
+    "Internal",
+    "Confidential",
+    "Restricted"
+  ]
+}
