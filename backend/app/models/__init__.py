@@ -9,6 +9,12 @@ from app.models.monitoring import (
     MonitoringConfiguration,
     MonitoringSession,
 )
+from app.models.risk import (
+    AlertAuditLog,
+    RiskAssessment,
+    RuleMatch,
+    SecurityAlert,
+)
 
 __all__ = [
     "Base",
@@ -21,4 +27,8 @@ __all__ = [
     "FileActivityEvent",
     "MonitoringConfiguration",
     "MonitoringSession",
+    "RiskAssessment",
+    "RuleMatch",
+    "SecurityAlert",
+    "AlertAuditLog",
 ]

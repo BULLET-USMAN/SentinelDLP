@@ -1,8 +1,8 @@
 import React from 'react';
 
 interface NavbarProps {
-  currentTab: 'activity' | 'detection' | 'scanner' | 'status' | 'docs';
-  onSelectTab: (tab: 'activity' | 'detection' | 'scanner' | 'status' | 'docs') => void;
+  currentTab: 'risk' | 'activity' | 'detection' | 'scanner' | 'status' | 'docs';
+  onSelectTab: (tab: 'risk' | 'activity' | 'detection' | 'scanner' | 'status' | 'docs') => void;
   isBackendConnected: boolean;
 }
 
@@ -50,7 +50,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, isBacke
               border: '1px solid rgba(16, 185, 129, 0.25)',
               textTransform: 'uppercase',
             }}>
-              Phase 4 Active
+              Phase 5 Active
             </span>
           </div>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
@@ -60,6 +60,24 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, isBacke
       </div>
 
       <nav style={{ display: 'flex', gap: '0.5rem' }}>
+        <button
+          onClick={() => onSelectTab('risk')}
+          style={{
+            padding: '0.5rem 1rem',
+            borderRadius: '6px',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            transition: 'all 0.2s ease',
+            backgroundColor: currentTab === 'risk' ? 'var(--bg-tertiary)' : 'transparent',
+            color: currentTab === 'risk' ? '#f59e0b' : 'var(--text-secondary)',
+            border: currentTab === 'risk' ? '1px solid #f59e0b' : '1px solid transparent',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+          }}
+        >
+          <span>🚨</span> Risk Intelligence
+        </button>
         <button
           onClick={() => onSelectTab('activity')}
           style={{

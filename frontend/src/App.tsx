@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
+import { RiskIntelligencePage } from './pages/RiskIntelligencePage';
 import { LiveActivityPage } from './pages/LiveActivityPage';
 import { SensitiveDataPage } from './pages/SensitiveDataPage';
 import { FileScannerPage } from './pages/FileScannerPage';
@@ -8,7 +9,7 @@ import { DocumentationPage } from './pages/DocumentationPage';
 import { fetchLiveness } from './services/api';
 
 export const App: React.FC = () => {
-  const [currentTab, setCurrentTab] = useState<'activity' | 'detection' | 'scanner' | 'status' | 'docs'>('activity');
+  const [currentTab, setCurrentTab] = useState<'risk' | 'activity' | 'detection' | 'scanner' | 'status' | 'docs'>('risk');
   const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
 
   useEffect(() => {
@@ -35,7 +36,9 @@ export const App: React.FC = () => {
       />
 
       <main style={{ flex: 1 }}>
-        {currentTab === 'activity' ? (
+        {currentTab === 'risk' ? (
+          <RiskIntelligencePage />
+        ) : currentTab === 'activity' ? (
           <LiveActivityPage />
         ) : currentTab === 'detection' ? (
           <SensitiveDataPage />
@@ -64,7 +67,7 @@ export const App: React.FC = () => {
           <span>SentinelDLP Platform &copy; 2026. Defensive Cybersecurity Architecture.</span>
         </div>
         <div style={{ display: 'flex', gap: '1rem', fontFamily: 'var(--font-mono)' }}>
-          <span>Phase 4: Real-Time Activity Monitoring Active</span>
+          <span>Phase 5: Threat Risk Scoring & Alerts Active</span>
           <span>•</span>
           <span>Zero-Leakage Telemetry</span>
         </div>

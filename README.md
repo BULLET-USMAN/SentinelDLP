@@ -17,7 +17,7 @@ Designed with modular, defense-in-depth principles, SentinelDLP emphasizes zero-
 
 ---
 
-## 2. Implementation Status: Phase 4 Complete
+## 2. Implementation Status: Phase 5 Complete
 
 - **[COMPLETED] Phase 1 — Project Foundation & Architecture**
   - Robust FastAPI asynchronous backend, SQLAlchemy 2.0 ORM, and Alembic database migrations.
@@ -43,8 +43,28 @@ Designed with modular, defense-in-depth principles, SentinelDLP emphasizes zero-
   - Server-Sent Events (SSE) streaming endpoint (`/api/v1/monitoring/events/stream`) providing sub-second frontend updates.
   - Live Activity operational UI with live telemetry counters, start/stop session controls, live event feed, and zero-leakage event audit drawer.
   - Strict attribution transparency: Filesystem events record `event_source="watchdog"` and do not fabricate user or process attribution.
-- **[PLANNED] Phase 5 — Behavioral Risk Scoring & Anomaly Detection**
-- **[PLANNED] Phase 6 — AI-Assisted Exfiltration Correlation & Incident Investigation**
+- **[COMPLETED] Phase 5 — Intelligent Threat Risk Scoring, Detection Rules & Security Alert Engine**
+  - **Deterministic Threat Scoring**: Normalized 0–100 risk score combining primary rule contributions and diminishing secondary rule weights, with soft capping at 100.
+  - **Configurable Severity Bands**: `LOW` (0–29), `MEDIUM` (30–59), `HIGH` (60–79), and `CRITICAL` (80–100).
+  - **Core Philosophy**: **File sensitivity is context, not proof of malicious activity.** Ordinary modifications to sensitive assets remain in the LOW band unless supported by abnormal velocity, bulk operations, or structural alterations.
+  - **8 Operational Detection Rules**:
+    1. `RULE-SENS-MOD`: Sensitive File Modification (CONFIDENTIAL/RESTRICTED files).
+    2. `RULE-RAPID-MOD`: Rapid File Modification Activity (high frequency of distinct files in 5 minutes).
+    3. `RULE-BULK-RENAME`: Bulk File Renaming (high number of distinct renames; flags volume without asserting speculative conclusions).
+    4. `RULE-SENS-DEL`: Sensitive File Deletion Activity (multiple classified deletions in 15 minutes, preserving historical classification).
+    5. `RULE-REPEAT-CHANGE`: Repeated File Changes (high-churn alteration on a single path).
+    6. `RULE-SENS-VOLUME`: Unusual Sensitive File Activity Volume (clustered operations on sensitive assets in 15 minutes).
+    7. `RULE-EXT-CHANGE`: File Extension Change (tracks prior/new extension, applies bonus points for suspicious extensions like `.locked`, `.crypto`, `.enc`).
+    8. `RULE-COVERAGE-WARN`: Monitoring Coverage Failure (queue overflow or dropped events; treated as a diagnostic visibility warning).
+  - **Distinct Security Concepts**:
+    - *Data Sensitivity*: `PUBLIC`, `INTERNAL`, `CONFIDENTIAL`, `RESTRICTED`.
+    - *Threat Risk*: `0–100` score based on observable behavior in context.
+    - *Evidence Completeness*: `COMPLETE`, `PARTIAL`, `INSUFFICIENT`.
+    - *Detection Confidence*: `LOW`, `MEDIUM`, `HIGH`.
+    - *Alert Severity*: `LOW`, `MEDIUM`, `HIGH`, `CRITICAL`.
+  - **Alert Lifecycle & Sliding-Window Suppression**: Bounded 5-minute suppression window with repeat-counter tracking to prevent alert storms; supports `OPEN` &rarr; `ACKNOWLEDGED` &rarr; `INVESTIGATING` &rarr; `RESOLVED` / `FALSE_POSITIVE` transitions with an immutable audit trail.
+  - **Frontend Risk Intelligence Dashboard**: Dedicated operational view with risk distribution meters, sortable alerts table, and slide-out investigation drawer with analyst triage controls.
+- **[PLANNED] Phase 6 — AI-Assisted Exfiltration Correlation, Incident Reconstruction & Investigation**
 
 ---
 
@@ -63,7 +83,7 @@ Designed with modular, defense-in-depth principles, SentinelDLP emphasizes zero-
 - **Framework**: React 18 & TypeScript 5.4
 - **Tooling**: Vite 5
 - **Icons**: Lucide React
-- **Design System**: Cybersecurity Dark Theme (`#0a0e17` background with `#10b981` emerald / `#3b82f6` blue accents)
+- **Design System**: Cybersecurity Dark Theme (`#0a0e17` background with `#10b981` emerald / `#f59e0b` amber / `#ef4444` red accents)
 
 ### Container Architecture
 - **Multi-stage Docker** configurations running under non-root users (`sentinel` UID 1001, and `nginx` non-root user).
@@ -71,61 +91,58 @@ Designed with modular, defense-in-depth principles, SentinelDLP emphasizes zero-
 
 ---
 
-## 4. Phase 4 Monitoring Architecture & Data Flow
+## 4. Phase 5 Risk Scoring & Security Alert Architecture
 
 ```
 ┌────────────────────────────────────────────────────────┐
-│             Authorized Directory Filesystem             │
+│         Normalized File Activity Event (Phase 4)       │
 └───────────────────────────┬────────────────────────────┘
-                            │ OS filesystem notifications
+                            │
                             ▼
 ┌────────────────────────────────────────────────────────┐
-│            Python Watchdog (FileObserver)              │
-│       Captures: CREATE, MODIFY, DELETE, MOVE, RENAME   │
+│            Temporal Context Builder (DB-Backed)        │
+│  - 5-min window: distinct modified files, renames      │
+│  - 15-min window: sensitive deletions, sensitive vol   │
+│  - Monitoring health: queue overflow & capture drops   │
 └───────────────────────────┬────────────────────────────┘
-                            │ Raw filesystem events
+                            │
                             ▼
 ┌────────────────────────────────────────────────────────┐
-│           EventNormalizer & Boundary Check             │
-│  - Standardizes paths relative to authorized root      │
-│  - Blocks path traversal & directory escapes           │
-│  - Classifies moves (INTERNAL, INBOUND, OUTBOUND)      │
+│           Security Detection Rules Evaluator           │
+│  Evaluates 8 rules against event and temporal metrics  │
 └───────────────────────────┬────────────────────────────┘
-                            │ Normalized events
+                            │
                             ▼
 ┌────────────────────────────────────────────────────────┐
-│          EventDebouncer (Sliding Window: 0.4s)         │
-│  - Suppresses write/flush storms on single file        │
-│  - Preserves structural changes (CREATE/DELETE/RENAME) │
+│           Deterministic Scoring Engine (0–100)         │
+│  - Primary rule points + 0.6 * secondary rule points   │
+│  - Capped at 100; maps to LOW, MEDIUM, HIGH, CRITICAL  │
+│  - Evidence Completeness & Confidence assessment       │
+│  - Human-readable explanation & SOC recommendations    │
 └───────────────────────────┬────────────────────────────┘
-                            │ Debounced events
+                            │
                             ▼
 ┌────────────────────────────────────────────────────────┐
-│          Bounded Event Queue (Capacity: 5000)          │
-│  - Non-blocking ingestion prevents filesystem blocking │
-│  - Tracks queue overflows and drops cleanly on surge   │
+│          Alert Service & Suppression Engine            │
+│  - Evaluates alerting thresholds (score >= 30)         │
+│  - Deduplication key: hash(root + rule + file_path)    │
+│  - 300s sliding-window suppression (increments repeat) │
+│  - Triage lifecycle: OPEN -> ACK -> INVEST -> RESOLVED │
+│  - Immutable audit trail (alert_audit_logs table)      │
 └───────────────────────────┬────────────────────────────┘
-                            │ Ingestion worker
+                            │
                             ▼
 ┌────────────────────────────────────────────────────────┐
-│         Async EventProcessor (Background Worker)       │
-│  - Phase 2 Integration: Updates size, mod_time, SHA256 │
-│  - Phase 3 Integration: Triggers sensitive data scans  │
-│  - DB Persistence: file_activity_events table          │
-│  - Broadcast: Server-Sent Events (SSE) channel         │
-└───────────────────────────┬────────────────────────────┘
-                            │ Real-time SSE Stream
-                            ▼
-┌────────────────────────────────────────────────────────┐
-│        React Frontend: Live Activity Dashboard         │
-│  - Real-time KPI tiles & session controls              │
-│  - Auto-updating live activity feed & filter controls  │
-│  - Zero-leakage event audit drawer                     │
+│       React Frontend: Risk Intelligence Dashboard      │
+│  - Risk overview & severity breakdown tiles            │
+│  - Filterable security alerts table                    │
+│  - Slide-out alert investigation & triage drawer       │
+│  - Detection rules catalog reference                   │
 └────────────────────────────────────────────────────────┘
 ```
 
-### Important Defensive Technical Reality
-Filesystem notifications provided by OS-level watchers (Windows ReadDirectoryChangesW, Linux inotify) capture filesystem state transitions, but **do not** reliably expose user credentials or originating process IDs without kernel drivers (ETW / eBPF). In adherence to professional cybersecurity engineering ethics, SentinelDLP records `event_source="watchdog"` and leaves process and user attribution strictly un-fabricated.
+### Defensive Technical Boundaries
+Filesystem observer telemetry indicates file creation, modification, deletion, and movement. It **does not** confirm process attribution, authenticated user credentials, memory access, or network exfiltration. SentinelDLP documents these boundaries truthfully in every assessment without fabricating telemetry.
 
 ---
 
@@ -160,6 +177,18 @@ Filesystem notifications provided by OS-level watchers (Windows ReadDirectoryCha
 | `GET` | `/api/v1/monitoring/statistics` | Aggregated telemetry (total events, deduplicated, queue overflows) |
 | `GET` | `/api/v1/monitoring/events/stream` | Server-Sent Events (SSE) real-time event stream for dashboards |
 
+### Risk Intelligence & Security Alerts (Phase 5)
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/v1/risk/assessments` | Paginated risk assessments with multi-parameter filtering |
+| `GET` | `/api/v1/risk/assessments/{assessment_id}` | Complete assessment detail with granular rule matches and evidence |
+| `GET` | `/api/v1/risk/statistics` | Aggregated risk metrics, score distribution, and average threat score |
+| `GET` | `/api/v1/risk/rules` | Active detection rules catalog, thresholds, and template definitions |
+| `GET` | `/api/v1/alerts` | Paginated security alerts with status and severity filters |
+| `GET` | `/api/v1/alerts/{alert_id}` | Comprehensive alert detail with linked assessment and audit trail |
+| `PATCH` | `/api/v1/alerts/{alert_id}/status` | Update alert triage lifecycle status with analyst commentary |
+| `GET` | `/api/v1/alerts/statistics` | SOC triage metrics (counts by status: OPEN, ACKNOWLEDGED, INVESTIGATING, RESOLVED, FALSE_POSITIVE) |
+
 ---
 
 ## 6. Database Schema & Migrations
@@ -170,6 +199,7 @@ Database schema management is handled via Alembic migrations:
 2. `0002_scan_jobs_and_files.py`: `scan_jobs` and `scanned_files` tables for Phase 2 file inventory.
 3. `0003_classification_and_findings.py`: `file_classifications` and `detection_findings` tables for Phase 3 sensitive data discovery.
 4. `0004_file_activity_monitoring.py`: `monitoring_configurations`, `file_activity_events`, and `monitoring_sessions` tables for Phase 4 real-time tracking.
+5. `0005_risk_scoring_and_alerts.py`: `risk_assessments`, `rule_matches`, `security_alerts`, and `alert_audit_logs` tables for Phase 5 risk scoring and SOC triage.
 
 ---
 
@@ -213,7 +243,7 @@ npm.cmd run dev
 
 SentinelDLP maintains a comprehensive automated test suite spanning unit tests, integration tests, boundary verifications, and cryptographic vectors.
 
-Run the full pytest suite (61 tests across Phase 1, Phase 2, Phase 3, and Phase 4):
+Run the full pytest suite (78 tests across Phase 1, Phase 2, Phase 3, Phase 4, and Phase 5):
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -v backend\tests
@@ -223,6 +253,7 @@ Run the full pytest suite (61 tests across Phase 1, Phase 2, Phase 3, and Phase 
 - **Phase 2 Scanner**: Streaming SHA-256 chunking, magic-byte mismatch detection, directory traversal security, and cooperative cancellation tokens.
 - **Phase 3 Detection Engine**: Luhn algorithm validation, Shannon entropy calculation, high-confidence secret masking, PDF/DOCX content extraction, and policy classification.
 - **Phase 4 Monitoring**: Watchdog event normalization, path traversal blocking, 0.4s sliding-window debouncing, bounded queue saturation & overflow tracking, live session lifecycle, and SSE event streaming.
+- **Phase 5 Risk Engine**: 0–100 score normalization, diminishing returns formula, 8 security detection rules evaluated individually and in combinations, alert deduplication and 300s sliding-window suppression, analyst triage lifecycle transitions, audit logging, and REST API validation.
 
 ---
 
@@ -232,5 +263,5 @@ Run the full pytest suite (61 tests across Phase 1, Phase 2, Phase 3, and Phase 
 - **[x] Phase 2: Intelligent File Scanning Engine & File Inventory System**
 - **[x] Phase 3: Advanced Sensitive Data Detection & Classification Engine**
 - **[x] Phase 4: Real-Time File Activity Monitoring & Security Event Collection**
-- **[ ] Phase 5: Behavioral Risk Scoring, Anomaly Detection & Threat Heuristics**
+- **[x] Phase 5: Intelligent Threat Risk Scoring, Detection Rules & Security Alert Engine**
 - **[ ] Phase 6: AI-Assisted Exfiltration Correlation, Incident Reconstruction & Response**

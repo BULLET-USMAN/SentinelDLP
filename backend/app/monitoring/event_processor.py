@@ -25,6 +25,7 @@ from app.models.scanner import ScanJob, ScannedFile
 from app.monitoring.event_normalizer import NormalizedEvent
 from app.monitoring.event_queue import BoundedEventQueue
 from app.monitoring.schemas import FileActivityEventItem
+from app.risk.engine import risk_engine
 from app.scanner.metadata import extract_file_metadata
 
 
@@ -280,6 +281,13 @@ class EventProcessor:
                 event_source="watchdog",
             )
             db.add(event_record)
+            db.flush()
+
+            # Phase 5: Evaluate Threat Risk and Alerts
+            try:
+                risk_engine.evaluate_event(event_record, db)
+            except Exception as r_err:
+                logger.error(f"Risk evaluation error on event {event.event_id}: {r_err}", exc_info=True)
 
             # Update session metrics
             session = db.query(MonitoringSession).filter(MonitoringSession.id == self.session_id).first()
@@ -332,6 +340,13 @@ class EventProcessor:
                 event_source="watchdog",
             )
             db.add(event_record)
+            db.flush()
+
+            # Phase 5: Evaluate Threat Risk and Alerts
+            try:
+                risk_engine.evaluate_event(event_record, db)
+            except Exception as r_err:
+                logger.error(f"Risk evaluation error on event {event.event_id}: {r_err}", exc_info=True)
 
             session = db.query(MonitoringSession).filter(MonitoringSession.id == self.session_id).first()
             if session:
@@ -365,6 +380,13 @@ class EventProcessor:
                 error_category=error_category,
             )
             db.add(event_record)
+            db.flush()
+
+            # Phase 5: Evaluate Threat Risk and Alerts
+            try:
+                risk_engine.evaluate_event(event_record, db)
+            except Exception as r_err:
+                logger.error(f"Risk evaluation error on event {event.event_id}: {r_err}", exc_info=True)
 
             session = db.query(MonitoringSession).filter(MonitoringSession.id == self.session_id).first()
             if session:

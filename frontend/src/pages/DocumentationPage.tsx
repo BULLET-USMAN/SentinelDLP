@@ -13,15 +13,49 @@ export const DocumentationPage: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        {/* Phase 5 Implemented */}
+        <div style={{
+          backgroundColor: 'var(--bg-card)',
+          border: '1px solid rgba(245, 158, 11, 0.4)',
+          borderRadius: '8px',
+          padding: '1.5rem',
+        }}>
+          <h2 style={{ fontSize: '1.15rem', color: '#f59e0b', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>✓</span> Phase 5 Active: Intelligent Threat Risk Scoring & Security Alert Engine
+          </h2>
+          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• 0–100 Normalized Threat Scoring:</strong>
+              Deterministic mathematical scoring combining primary triggers and diminishing secondary rule weights, mapped into LOW, MEDIUM, HIGH, and CRITICAL bands.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• 8 Operational Security Detection Rules:</strong>
+              Evaluates sensitive modifications, rapid burst changes, bulk renaming, sensitive asset deletions, high-churn file paths, volume anomalies, extension alterations, and coverage failures.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Explainable SOC Findings:</strong>
+              Every non-trivial assessment provides human-readable explanations, limitation boundaries, and actionable investigation recommendations.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Alert Deduplication & Sliding-Window Suppression:</strong>
+              Clustering repetitive events (5-minute suppression window) with repeat-counter tracking to eliminate SOC alert fatigue.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Analyst Triage Lifecycle & Audit Trail:</strong>
+              Supports OPEN &rarr; ACKNOWLEDGED &rarr; INVESTIGATING &rarr; RESOLVED / FALSE_POSITIVE transitions backed by immutable PostgreSQL audit records.
+            </li>
+          </ul>
+        </div>
+
         {/* Phase 4 Implemented */}
         <div style={{
           backgroundColor: 'var(--bg-card)',
-          border: '1px solid rgba(16, 185, 129, 0.4)',
+          border: '1px solid var(--border-subtle)',
           borderRadius: '8px',
           padding: '1.5rem',
         }}>
           <h2 style={{ fontSize: '1.15rem', color: 'var(--accent-green)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span>✓</span> Phase 4 Active: Real-Time File Activity Monitoring & Security Event Collection
+            <span>✓</span> Phase 4 Implementation: Real-Time File Activity Monitoring & Security Event Collection
           </h2>
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
             <li style={{ display: 'flex', gap: '0.5rem' }}>

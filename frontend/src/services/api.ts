@@ -18,6 +18,16 @@ import {
   MonitoringStatusResponse,
   PaginatedEventsResponse,
 } from '../types/monitoring';
+import {
+  AlertStatistics,
+  AlertStatus,
+  DetectionRuleCatalogItem,
+  PaginatedRiskAssessments,
+  PaginatedSecurityAlerts,
+  RiskAssessmentItem,
+  RiskStatistics,
+  SecurityAlertDetail,
+} from '../types/risk';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
@@ -326,4 +336,132 @@ export async function fetchMonitoringStatistics(rootId?: string): Promise<Monito
 export function createEventSourceStream(rootId: string = 'synthetic_samples'): EventSource {
   const url = `${API_BASE_URL}/api/v1/monitoring/events/stream?root_id=${encodeURIComponent(rootId)}`;
   return new EventSource(url);
+}
+
+// ==========================================
+// Phase 5: Risk Intelligence & Security Alerts
+// ==========================================
+
+export async function fetchRiskAssessments(
+  page: number = 1,
+  pageSize: number = 20,
+  rootId?: string,
+  severity?: string,
+  minScore?: number,
+  maxScore?: number,
+  status?: string,
+): Promise<PaginatedRiskAssessments> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    page_size: pageSize.toString(),
+  });
+  if (rootId) params.append('root_id', rootId);
+  if (severity) params.append('severity', severity);
+  if (minScore !== undefined) params.append('min_score', minScore.toString());
+  if (maxScore !== undefined) params.append('max_score', maxScore.toString());
+  if (status) params.append('status', status);
+
+  const url = `${API_BASE_URL}/api/v1/risk/assessments?${params.toString()}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load risk assessments (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchRiskAssessmentDetails(assessmentId: string): Promise<RiskAssessmentItem> {
+  const url = `${API_BASE_URL}/api/v1/risk/assessments/${assessmentId}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load assessment details (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchRiskStatistics(): Promise<RiskStatistics> {
+  const url = `${API_BASE_URL}/api/v1/risk/statistics`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load risk statistics (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchDetectionRulesCatalog(): Promise<DetectionRuleCatalogItem[]> {
+  const url = `${API_BASE_URL}/api/v1/risk/rules`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load detection rules catalog (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchSecurityAlerts(
+  page: number = 1,
+  pageSize: number = 20,
+  status?: string,
+  severity?: string,
+  rootId?: string,
+  minScore?: number,
+): Promise<PaginatedSecurityAlerts> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    page_size: pageSize.toString(),
+  });
+  if (status) params.append('status', status);
+  if (severity) params.append('severity', severity);
+  if (rootId) params.append('root_id', rootId);
+  if (minScore !== undefined) params.append('min_score', minScore.toString());
+
+  const url = `${API_BASE_URL}/api/v1/alerts?${params.toString()}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load security alerts (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchAlertDetails(alertId: string): Promise<SecurityAlertDetail> {
+  const url = `${API_BASE_URL}/api/v1/alerts/${alertId}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load alert details (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function updateAlertStatus(
+  alertId: string,
+  status: AlertStatus,
+  analystNotes?: string,
+  performedBy: string = 'security_analyst',
+): Promise<SecurityAlertDetail> {
+  const url = `${API_BASE_URL}/api/v1/alerts/${alertId}/status`;
+  const response = await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({
+      status,
+      analyst_notes: analystNotes || null,
+      performed_by: performedBy,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw new Error(errorBody.detail || `Failed to update alert status (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchAlertStatistics(): Promise<AlertStatistics> {
+  const url = `${API_BASE_URL}/api/v1/alerts/statistics`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load alert statistics (${response.status})`);
+  }
+  return response.json();
 }
