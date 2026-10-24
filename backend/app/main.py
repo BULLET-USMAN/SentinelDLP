@@ -46,6 +46,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         f"Shutting down {settings.APP_NAME} v{settings.APP_VERSION}",
         extra={"event": "application_shutdown"},
     )
+    # Gracefully stop all active filesystem observers
+    try:
+        from app.monitoring.manager import monitoring_manager
+        monitoring_manager.stop_all()
+    except Exception as err:
+        logger.error(f"Error terminating monitoring watchers during shutdown: {str(err)}")
 
 
 def create_application() -> FastAPI:

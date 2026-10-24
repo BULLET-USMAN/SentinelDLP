@@ -11,6 +11,13 @@ import {
   PaginatedFindingsResponse,
   SensitivitySummaryResponse,
 } from '../types/detection';
+import {
+  FileActivityEventItem,
+  MonitoringRootInfo,
+  MonitoringStatisticsResponse,
+  MonitoringStatusResponse,
+  PaginatedEventsResponse,
+} from '../types/monitoring';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
@@ -209,4 +216,114 @@ export async function fetchFileClassificationDetail(fileId: string): Promise<Fil
     throw new Error(`Failed to load file classification detail (${response.status})`);
   }
   return response.json();
+}
+
+// =========================================================================
+// Phase 4 Real-Time File Activity Monitoring API Calls
+// =========================================================================
+
+export async function fetchMonitoringRoots(): Promise<MonitoringRootInfo[]> {
+  const url = `${API_BASE_URL}/api/v1/monitoring/roots`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load monitoring roots (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchMonitoringStatus(rootId?: string): Promise<MonitoringStatusResponse> {
+  const params = rootId ? `?root_id=${encodeURIComponent(rootId)}` : '';
+  const url = `${API_BASE_URL}/api/v1/monitoring/status${params}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch monitoring status (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function startMonitoring(rootId: string, recursive: boolean = true): Promise<MonitoringStatusResponse> {
+  const url = `${API_BASE_URL}/api/v1/monitoring/start`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({ root_id: rootId, recursive }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw new Error(errorBody.detail || `Failed to start monitoring (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function stopMonitoring(rootId: string): Promise<MonitoringStatusResponse> {
+  const url = `${API_BASE_URL}/api/v1/monitoring/stop`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({ root_id: rootId }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw new Error(errorBody.detail || `Failed to stop monitoring (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchMonitoringEvents(
+  page: number = 1,
+  size: number = 50,
+  rootId?: string,
+  eventType?: string,
+  sensitivity?: string,
+  search?: string,
+  status?: string
+): Promise<PaginatedEventsResponse> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+  });
+  if (rootId) params.append('root_id', rootId);
+  if (eventType) params.append('event_type', eventType);
+  if (sensitivity) params.append('sensitivity', sensitivity);
+  if (search) params.append('search', search);
+  if (status) params.append('status', status);
+
+  const url = `${API_BASE_URL}/api/v1/monitoring/events?${params.toString()}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load activity events (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchEventDetails(eventId: string): Promise<FileActivityEventItem> {
+  const url = `${API_BASE_URL}/api/v1/monitoring/events/${eventId}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load event details (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchMonitoringStatistics(rootId?: string): Promise<MonitoringStatisticsResponse> {
+  const params = rootId ? `?root_id=${encodeURIComponent(rootId)}` : '';
+  const url = `${API_BASE_URL}/api/v1/monitoring/statistics${params}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch monitoring statistics (${response.status})`);
+  }
+  return response.json();
+}
+
+export function createEventSourceStream(rootId: string = 'synthetic_samples'): EventSource {
+  const url = `${API_BASE_URL}/api/v1/monitoring/events/stream?root_id=${encodeURIComponent(rootId)}`;
+  return new EventSource(url);
 }

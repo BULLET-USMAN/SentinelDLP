@@ -1,8 +1,8 @@
 import React from 'react';
 
 interface NavbarProps {
-  currentTab: 'detection' | 'scanner' | 'status' | 'docs';
-  onSelectTab: (tab: 'detection' | 'scanner' | 'status' | 'docs') => void;
+  currentTab: 'activity' | 'detection' | 'scanner' | 'status' | 'docs';
+  onSelectTab: (tab: 'activity' | 'detection' | 'scanner' | 'status' | 'docs') => void;
   isBackendConnected: boolean;
 }
 
@@ -50,7 +50,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, isBacke
               border: '1px solid rgba(16, 185, 129, 0.25)',
               textTransform: 'uppercase',
             }}>
-              Phase 3 Active
+              Phase 4 Active
             </span>
           </div>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
@@ -61,6 +61,24 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, isBacke
 
       <nav style={{ display: 'flex', gap: '0.5rem' }}>
         <button
+          onClick={() => onSelectTab('activity')}
+          style={{
+            padding: '0.5rem 1rem',
+            borderRadius: '6px',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            transition: 'all 0.2s ease',
+            backgroundColor: currentTab === 'activity' ? 'var(--bg-tertiary)' : 'transparent',
+            color: currentTab === 'activity' ? 'var(--accent-green)' : 'var(--text-secondary)',
+            border: currentTab === 'activity' ? '1px solid var(--accent-green)' : '1px solid transparent',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+          }}
+        >
+          <span>📡</span> Live Activity
+        </button>
+        <button
           onClick={() => onSelectTab('detection')}
           style={{
             padding: '0.5rem 1rem',
@@ -69,8 +87,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, isBacke
             fontWeight: 600,
             transition: 'all 0.2s ease',
             backgroundColor: currentTab === 'detection' ? 'var(--bg-tertiary)' : 'transparent',
-            color: currentTab === 'detection' ? 'var(--accent-green)' : 'var(--text-secondary)',
-            border: currentTab === 'detection' ? '1px solid var(--accent-green)' : '1px solid transparent',
+            color: currentTab === 'detection' ? 'var(--accent-blue)' : 'var(--text-secondary)',
+            border: currentTab === 'detection' ? '1px solid var(--accent-blue)' : '1px solid transparent',
             display: 'flex',
             alignItems: 'center',
             gap: '0.4rem',

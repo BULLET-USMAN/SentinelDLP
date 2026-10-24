@@ -13,7 +13,7 @@ export const DocumentationPage: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-        {/* Phase 3 Implemented */}
+        {/* Phase 4 Implemented */}
         <div style={{
           backgroundColor: 'var(--bg-card)',
           border: '1px solid rgba(16, 185, 129, 0.4)',
@@ -21,7 +21,41 @@ export const DocumentationPage: React.FC = () => {
           padding: '1.5rem',
         }}>
           <h2 style={{ fontSize: '1.15rem', color: 'var(--accent-green)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span>✓</span> Phase 3 Active: Sensitive Data Detection & Classification Engine
+            <span>✓</span> Phase 4 Active: Real-Time File Activity Monitoring & Security Event Collection
+          </h2>
+          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Cross-Platform Observer:</strong>
+              Python Watchdog observer integration observing CREATE, MODIFY, DELETE, RENAME, and MOVE operations across authorized roots.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Debouncing & Burst Suppression:</strong>
+              Deduplication engine filtering out multi-write save storms while strictly preserving state-changing transitions.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Bounded Queue & Backpressure:</strong>
+              Non-blocking event queuing with saturation metrics, preventing memory exhaustion and observer thread starvation.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Dynamic Reclassification:</strong>
+              Automatically triggers Phase 2 metadata extraction and Phase 3 sensitive data detection upon file creation or modification.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Real-Time Telemetry Delivery:</strong>
+              Live event streaming via Server-Sent Events (SSE) and persistent PostgreSQL event audit logs.
+            </li>
+          </ul>
+        </div>
+
+        {/* Phase 3 Implemented */}
+        <div style={{
+          backgroundColor: 'var(--bg-card)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: '8px',
+          padding: '1.5rem',
+        }}>
+          <h2 style={{ fontSize: '1.15rem', color: 'var(--accent-green)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>✓</span> Phase 3 Implementation: Sensitive Data Detection & Classification Engine
           </h2>
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
             <li style={{ display: 'flex', gap: '0.5rem' }}>
