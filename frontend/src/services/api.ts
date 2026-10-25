@@ -67,10 +67,19 @@ import {
 } from '../types/simulation';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+const DEFAULT_API_KEY = (import.meta as any).env?.VITE_API_KEY || 'sentinel_admin_key_dev_sec';
+
+export async function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const headers = new Headers(init?.headers);
+  if (!headers.has('X-API-Key')) {
+    headers.set('X-API-Key', DEFAULT_API_KEY);
+  }
+  return fetch(input, { ...init, headers });
+}
 
 export async function fetchLiveness(): Promise<LivenessResponse> {
   const url = `${API_BASE_URL}/health/live`;
-  const response = await fetch(url, {
+  const response = await authFetch(url, {
     headers: {
       'Accept': 'application/json',
     },
@@ -85,7 +94,7 @@ export async function fetchLiveness(): Promise<LivenessResponse> {
 
 export async function fetchReadiness(): Promise<ReadinessResponse> {
   const url = `${API_BASE_URL}/health/ready`;
-  const response = await fetch(url, {
+  const response = await authFetch(url, {
     headers: {
       'Accept': 'application/json',
     },
@@ -104,7 +113,7 @@ export async function fetchReadiness(): Promise<ReadinessResponse> {
 
 export async function fetchAuthorizedRoots(): Promise<AuthorizedRoot[]> {
   const url = `${API_BASE_URL}/api/v1/scanner/roots`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load authorized scan roots (${response.status})`);
   }
@@ -113,7 +122,7 @@ export async function fetchAuthorizedRoots(): Promise<AuthorizedRoot[]> {
 
 export async function createScanJob(rootId: string): Promise<ScanJobSummary> {
   const url = `${API_BASE_URL}/api/v1/scans`;
-  const response = await fetch(url, {
+  const response = await authFetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -132,7 +141,7 @@ export async function createScanJob(rootId: string): Promise<ScanJobSummary> {
 
 export async function fetchScanHistory(limit: number = 20): Promise<ScanJobSummary[]> {
   const url = `${API_BASE_URL}/api/v1/scans?limit=${limit}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch scan history (${response.status})`);
   }
@@ -141,7 +150,7 @@ export async function fetchScanHistory(limit: number = 20): Promise<ScanJobSumma
 
 export async function fetchScanStatus(scanId: string): Promise<ScanJobSummary> {
   const url = `${API_BASE_URL}/api/v1/scans/${scanId}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch status for scan ${scanId} (${response.status})`);
   }
@@ -168,7 +177,7 @@ export async function fetchScanFiles(
   if (typeMismatch !== undefined) params.append('type_mismatch', typeMismatch.toString());
 
   const url = `${API_BASE_URL}/api/v1/scans/${scanId}/files?${params.toString()}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load inventory files (${response.status})`);
   }
@@ -177,7 +186,7 @@ export async function fetchScanFiles(
 
 export async function cancelScanJob(scanId: string): Promise<{ status: string; message: string }> {
   const url = `${API_BASE_URL}/api/v1/scans/${scanId}/cancel`;
-  const response = await fetch(url, {
+  const response = await authFetch(url, {
     method: 'POST',
   });
   if (!response.ok) {
@@ -192,7 +201,7 @@ export async function cancelScanJob(scanId: string): Promise<{ status: string; m
 
 export async function fetchDetectionRules(): Promise<DetectionRuleInfo[]> {
   const url = `${API_BASE_URL}/api/v1/detection/rules`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load detection rules (${response.status})`);
   }
@@ -201,7 +210,7 @@ export async function fetchDetectionRules(): Promise<DetectionRuleInfo[]> {
 
 export async function fetchSensitivitySummary(scanId: string): Promise<SensitivitySummaryResponse> {
   const url = `${API_BASE_URL}/api/v1/scans/${scanId}/sensitivity-summary`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load sensitivity summary (${response.status})`);
   }
@@ -223,7 +232,7 @@ export async function fetchScanFindings(
   if (confidence) params.append('confidence', confidence);
 
   const url = `${API_BASE_URL}/api/v1/scans/${scanId}/findings?${params.toString()}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load findings (${response.status})`);
   }
@@ -249,7 +258,7 @@ export async function fetchClassifiedFiles(
   if (highestConfidence) params.append('highest_confidence', highestConfidence);
 
   const url = `${API_BASE_URL}/api/v1/scans/${scanId}/classified-files?${params.toString()}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load classified files (${response.status})`);
   }
@@ -258,7 +267,7 @@ export async function fetchClassifiedFiles(
 
 export async function fetchFileClassificationDetail(fileId: string): Promise<FileClassificationDetail> {
   const url = `${API_BASE_URL}/api/v1/files/${fileId}/classification`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load file classification detail (${response.status})`);
   }
@@ -271,7 +280,7 @@ export async function fetchFileClassificationDetail(fileId: string): Promise<Fil
 
 export async function fetchMonitoringRoots(): Promise<MonitoringRootInfo[]> {
   const url = `${API_BASE_URL}/api/v1/monitoring/roots`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load monitoring roots (${response.status})`);
   }
@@ -281,7 +290,7 @@ export async function fetchMonitoringRoots(): Promise<MonitoringRootInfo[]> {
 export async function fetchMonitoringStatus(rootId?: string): Promise<MonitoringStatusResponse> {
   const params = rootId ? `?root_id=${encodeURIComponent(rootId)}` : '';
   const url = `${API_BASE_URL}/api/v1/monitoring/status${params}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch monitoring status (${response.status})`);
   }
@@ -290,7 +299,7 @@ export async function fetchMonitoringStatus(rootId?: string): Promise<Monitoring
 
 export async function startMonitoring(rootId: string, recursive: boolean = true): Promise<MonitoringStatusResponse> {
   const url = `${API_BASE_URL}/api/v1/monitoring/start`;
-  const response = await fetch(url, {
+  const response = await authFetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -308,7 +317,7 @@ export async function startMonitoring(rootId: string, recursive: boolean = true)
 
 export async function stopMonitoring(rootId: string): Promise<MonitoringStatusResponse> {
   const url = `${API_BASE_URL}/api/v1/monitoring/stop`;
-  const response = await fetch(url, {
+  const response = await authFetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -344,7 +353,7 @@ export async function fetchMonitoringEvents(
   if (status) params.append('status', status);
 
   const url = `${API_BASE_URL}/api/v1/monitoring/events?${params.toString()}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load activity events (${response.status})`);
   }
@@ -353,7 +362,7 @@ export async function fetchMonitoringEvents(
 
 export async function fetchEventDetails(eventId: string): Promise<FileActivityEventItem> {
   const url = `${API_BASE_URL}/api/v1/monitoring/events/${eventId}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load event details (${response.status})`);
   }
@@ -363,7 +372,7 @@ export async function fetchEventDetails(eventId: string): Promise<FileActivityEv
 export async function fetchMonitoringStatistics(rootId?: string): Promise<MonitoringStatisticsResponse> {
   const params = rootId ? `?root_id=${encodeURIComponent(rootId)}` : '';
   const url = `${API_BASE_URL}/api/v1/monitoring/statistics${params}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch monitoring statistics (${response.status})`);
   }
@@ -399,7 +408,7 @@ export async function fetchRiskAssessments(
   if (status) params.append('status', status);
 
   const url = `${API_BASE_URL}/api/v1/risk/assessments?${params.toString()}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load risk assessments (${response.status})`);
   }
@@ -408,7 +417,7 @@ export async function fetchRiskAssessments(
 
 export async function fetchRiskAssessmentDetails(assessmentId: string): Promise<RiskAssessmentItem> {
   const url = `${API_BASE_URL}/api/v1/risk/assessments/${assessmentId}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load assessment details (${response.status})`);
   }
@@ -417,7 +426,7 @@ export async function fetchRiskAssessmentDetails(assessmentId: string): Promise<
 
 export async function fetchRiskStatistics(): Promise<RiskStatistics> {
   const url = `${API_BASE_URL}/api/v1/risk/statistics`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load risk statistics (${response.status})`);
   }
@@ -426,7 +435,7 @@ export async function fetchRiskStatistics(): Promise<RiskStatistics> {
 
 export async function fetchDetectionRulesCatalog(): Promise<DetectionRuleCatalogItem[]> {
   const url = `${API_BASE_URL}/api/v1/risk/rules`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load detection rules catalog (${response.status})`);
   }
@@ -451,7 +460,7 @@ export async function fetchSecurityAlerts(
   if (minScore !== undefined) params.append('min_score', minScore.toString());
 
   const url = `${API_BASE_URL}/api/v1/alerts?${params.toString()}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load security alerts (${response.status})`);
   }
@@ -460,7 +469,7 @@ export async function fetchSecurityAlerts(
 
 export async function fetchAlertDetails(alertId: string): Promise<SecurityAlertDetail> {
   const url = `${API_BASE_URL}/api/v1/alerts/${alertId}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load alert details (${response.status})`);
   }
@@ -474,7 +483,7 @@ export async function updateAlertStatus(
   performedBy: string = 'security_analyst',
 ): Promise<SecurityAlertDetail> {
   const url = `${API_BASE_URL}/api/v1/alerts/${alertId}/status`;
-  const response = await fetch(url, {
+  const response = await authFetch(url, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -496,7 +505,7 @@ export async function updateAlertStatus(
 
 export async function fetchAlertStatistics(): Promise<AlertStatistics> {
   const url = `${API_BASE_URL}/api/v1/alerts/statistics`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load alert statistics (${response.status})`);
   }
@@ -509,7 +518,7 @@ export async function fetchAlertStatistics(): Promise<AlertStatistics> {
 
 export async function fetchExfiltrationStatistics(): Promise<ExfiltrationStatistics> {
   const url = `${API_BASE_URL}/api/v1/exfiltration/statistics`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load exfiltration statistics (${response.status})`);
   }
@@ -531,7 +540,7 @@ export async function fetchExfiltrationInvestigations(params?: {
   if (params?.offset !== undefined) query.append('offset', params.offset.toString());
 
   const url = `${API_BASE_URL}/api/v1/exfiltration/investigations?${query.toString()}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load exfiltration investigations (${response.status})`);
   }
@@ -540,7 +549,7 @@ export async function fetchExfiltrationInvestigations(params?: {
 
 export async function fetchExfiltrationInvestigationDetail(id: string): Promise<ExfiltrationInvestigationItem> {
   const url = `${API_BASE_URL}/api/v1/exfiltration/investigations/${id}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load investigation details (${response.status})`);
   }
@@ -549,7 +558,7 @@ export async function fetchExfiltrationInvestigationDetail(id: string): Promise<
 
 export async function fetchExfiltrationTimeline(id: string): Promise<ExfiltrationTimelineItem[]> {
   const url = `${API_BASE_URL}/api/v1/exfiltration/investigations/${id}/timeline`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load investigation timeline (${response.status})`);
   }
@@ -563,7 +572,7 @@ export async function updateExfiltrationInvestigationStatus(
   notes?: string,
 ): Promise<ExfiltrationInvestigationItem> {
   const url = `${API_BASE_URL}/api/v1/exfiltration/investigations/${id}/status`;
-  const response = await fetch(url, {
+  const response = await authFetch(url, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -585,7 +594,7 @@ export async function updateExfiltrationInvestigationStatus(
 
 export async function fetchExfiltrationRules(): Promise<ExfiltrationRuleDefinition[]> {
   const url = `${API_BASE_URL}/api/v1/exfiltration/rules`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load exfiltration rules (${response.status})`);
   }
@@ -594,7 +603,7 @@ export async function fetchExfiltrationRules(): Promise<ExfiltrationRuleDefiniti
 
 export async function triggerCorrelationRun(windowMinutes: number = 15): Promise<any> {
   const url = `${API_BASE_URL}/api/v1/exfiltration/correlate`;
-  const response = await fetch(url, {
+  const response = await authFetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -611,7 +620,7 @@ export async function triggerCorrelationRun(windowMinutes: number = 15): Promise
 
 export async function simulateTransferScenario(scenarioType: string = 'cloud_exfiltration'): Promise<TransferEventItem[]> {
   const url = `${API_BASE_URL}/api/v1/exfiltration/transfers/simulate?scenario_type=${scenarioType}`;
-  const response = await fetch(url, {
+  const response = await authFetch(url, {
     method: 'POST',
     headers: {
       'Accept': 'application/json',
@@ -626,7 +635,7 @@ export async function simulateTransferScenario(scenarioType: string = 'cloud_exf
 
 export async function fetchTransferEvents(limit: number = 50): Promise<TransferEventItem[]> {
   const url = `${API_BASE_URL}/api/v1/exfiltration/transfers?limit=${limit}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch transfers (${response.status})`);
   }
@@ -639,7 +648,7 @@ export async function fetchTransferEvents(limit: number = 50): Promise<TransferE
 
 export async function fetchNetworkStatus(): Promise<NetworkStatusResponse> {
   const url = `${API_BASE_URL}/api/v1/network/status`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load network status (${response.status})`);
   }
@@ -648,7 +657,7 @@ export async function fetchNetworkStatus(): Promise<NetworkStatusResponse> {
 
 export async function fetchNetworkSensors(): Promise<NetworkSensorItem[]> {
   const url = `${API_BASE_URL}/api/v1/network/sensors`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load network sensors (${response.status})`);
   }
@@ -676,7 +685,7 @@ export async function fetchNetworkConnections(params?: {
   }
 
   const url = `${API_BASE_URL}/api/v1/network/connections?${queryParams.toString()}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load network connections (${response.status})`);
   }
@@ -685,7 +694,7 @@ export async function fetchNetworkConnections(params?: {
 
 export async function fetchNetworkDNS(limit: number = 15): Promise<DNSIntelligenceResponse> {
   const url = `${API_BASE_URL}/api/v1/network/dns?limit=${limit}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load DNS intelligence (${response.status})`);
   }
@@ -694,7 +703,7 @@ export async function fetchNetworkDNS(limit: number = 15): Promise<DNSIntelligen
 
 export async function fetchNetworkAlerts(limit: number = 50): Promise<NetworkAlertItem[]> {
   const url = `${API_BASE_URL}/api/v1/network/alerts?limit=${limit}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load network alerts (${response.status})`);
   }
@@ -703,7 +712,7 @@ export async function fetchNetworkAlerts(limit: number = 50): Promise<NetworkAle
 
 export async function fetchNetworkStatistics(): Promise<NetworkStatistics> {
   const url = `${API_BASE_URL}/api/v1/network/statistics`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load network statistics (${response.status})`);
   }
@@ -712,7 +721,7 @@ export async function fetchNetworkStatistics(): Promise<NetworkStatistics> {
 
 export async function fetchTrafficSummary(interval: '1h' | '24h' | '7d' = '24h'): Promise<TrafficSummaryResponse> {
   const url = `${API_BASE_URL}/api/v1/network/traffic-summary?interval=${interval}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load traffic summary (${response.status})`);
   }
@@ -721,7 +730,7 @@ export async function fetchTrafficSummary(interval: '1h' | '24h' | '7d' = '24h')
 
 export async function fetchTopDestinations(limit: number = 10): Promise<TopDestinationItem[]> {
   const url = `${API_BASE_URL}/api/v1/network/destinations?limit=${limit}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load top destinations (${response.status})`);
   }
@@ -730,7 +739,7 @@ export async function fetchTopDestinations(limit: number = 10): Promise<TopDesti
 
 export async function fetchIngestionJobs(limit: number = 25): Promise<NetworkIngestionJobItem[]> {
   const url = `${API_BASE_URL}/api/v1/network/ingestion-jobs?limit=${limit}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load ingestion jobs (${response.status})`);
   }
@@ -739,7 +748,7 @@ export async function fetchIngestionJobs(limit: number = 25): Promise<NetworkIng
 
 export async function fetchNetworkRules(): Promise<NetworkRuleDefinition[]> {
   const url = `${API_BASE_URL}/api/v1/network/rules`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load network detection rules (${response.status})`);
   }
@@ -748,7 +757,7 @@ export async function fetchNetworkRules(): Promise<NetworkRuleDefinition[]> {
 
 export async function simulateNetworkScenario(scenarioType: string = 'zeek_cloud_upload'): Promise<NetworkIngestResponse> {
   const url = `${API_BASE_URL}/api/v1/network/simulate`;
-  const response = await fetch(url, {
+  const response = await authFetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -770,7 +779,7 @@ export async function ingestNetworkTelemetry(payload: {
   raw_content?: string;
 }): Promise<NetworkIngestResponse> {
   const url = `${API_BASE_URL}/api/v1/network/ingest`;
-  const response = await fetch(url, {
+  const response = await authFetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -788,7 +797,7 @@ export async function ingestNetworkTelemetry(payload: {
 
 export async function fetchThreatIntelIndicators(limit: number = 50): Promise<ThreatIntelIndicatorItem[]> {
   const url = `${API_BASE_URL}/api/v1/network/threat-intel/indicators?limit=${limit}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load threat intel indicators (${response.status})`);
   }
@@ -797,7 +806,7 @@ export async function fetchThreatIntelIndicators(limit: number = 50): Promise<Th
 
 export async function createThreatIntelIndicator(payload: ThreatIntelIndicatorCreate): Promise<ThreatIntelIndicatorItem> {
   const url = `${API_BASE_URL}/api/v1/network/threat-intel/indicators`;
-  const response = await fetch(url, {
+  const response = await authFetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -819,7 +828,7 @@ export async function createThreatIntelIndicator(payload: ThreatIntelIndicatorCr
 
 export async function fetchDashboardOverview(): Promise<DashboardOverviewResponse> {
   const url = `${API_BASE_URL}/api/v1/dashboard/overview`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load SOC dashboard overview (${response.status})`);
   }
@@ -828,7 +837,7 @@ export async function fetchDashboardOverview(): Promise<DashboardOverviewRespons
 
 export async function fetchDashboardSearch(query: string, limit: number = 15): Promise<DashboardSearchResponse> {
   const url = `${API_BASE_URL}/api/v1/dashboard/search?q=${encodeURIComponent(query)}&limit=${limit}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to perform global search (${response.status})`);
   }
@@ -841,7 +850,7 @@ export async function fetchDashboardSearch(query: string, limit: number = 15): P
 
 export async function fetchAIStatus(): Promise<import('../types/ai').AIStatusResponse> {
   const url = `${API_BASE_URL}/api/v1/ai/status`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load AI subsystem status (${response.status})`);
   }
@@ -850,7 +859,7 @@ export async function fetchAIStatus(): Promise<import('../types/ai').AIStatusRes
 
 export async function fetchAIModels(): Promise<import('../types/ai').AIModelInfo[]> {
   const url = `${API_BASE_URL}/api/v1/ai/models`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load AI models catalog (${response.status})`);
   }
@@ -863,7 +872,7 @@ export async function analyzeInvestigation(
   forceRefresh: boolean = false,
 ): Promise<import('../types/ai').AIInvestigationReportResponse> {
   const url = `${API_BASE_URL}/api/v1/ai/investigations/${investigationId}/analyze`;
-  const response = await fetch(url, {
+  const response = await authFetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -886,7 +895,7 @@ export async function fetchInvestigationReports(
   investigationId: string,
 ): Promise<import('../types/ai').AIInvestigationReportResponse[]> {
   const url = `${API_BASE_URL}/api/v1/ai/investigations/${investigationId}/reports`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load AI investigation reports (${response.status})`);
   }
@@ -897,7 +906,7 @@ export async function fetchReportDetail(
   reportId: string,
 ): Promise<import('../types/ai').AIInvestigationReportResponse> {
   const url = `${API_BASE_URL}/api/v1/ai/reports/${reportId}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load AI report details (${response.status})`);
   }
@@ -911,7 +920,7 @@ export async function submitReportFeedback(
   analystName: string = 'soc_analyst',
 ): Promise<import('../types/ai').AIInvestigationReportResponse> {
   const url = `${API_BASE_URL}/api/v1/ai/reports/${reportId}/feedback`;
-  const response = await fetch(url, {
+  const response = await authFetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -939,7 +948,7 @@ export async function sendAIChatMessage(payload: {
   analystName?: string;
 }): Promise<import('../types/ai').ChatMessageResponse> {
   const url = `${API_BASE_URL}/api/v1/ai/chat`;
-  const response = await fetch(url, {
+  const response = await authFetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -965,7 +974,7 @@ export async function fetchAIConversations(
   limit: number = 20,
 ): Promise<import('../types/ai').ConversationSessionSummary[]> {
   const url = `${API_BASE_URL}/api/v1/ai/conversations?limit=${limit}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load AI conversations (${response.status})`);
   }
@@ -976,7 +985,7 @@ export async function fetchAIConversationDetail(
   sessionId: string,
 ): Promise<import('../types/ai').ConversationSessionDetail> {
   const url = `${API_BASE_URL}/api/v1/ai/conversations/${sessionId}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load AI conversation details (${response.status})`);
   }
@@ -989,7 +998,7 @@ export async function fetchAIConversationDetail(
 
 export async function fetchSimulationScenarios(): Promise<ScenarioDefinition[]> {
   const url = `${API_BASE_URL}/api/v1/simulation/scenarios`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load simulation scenarios (${response.status})`);
   }
@@ -998,7 +1007,7 @@ export async function fetchSimulationScenarios(): Promise<ScenarioDefinition[]> 
 
 export async function fetchSimulationScenario(scenarioId: string): Promise<ScenarioDefinition> {
   const url = `${API_BASE_URL}/api/v1/simulation/scenarios/${scenarioId}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load scenario ${scenarioId} (${response.status})`);
   }
@@ -1007,7 +1016,7 @@ export async function fetchSimulationScenario(scenarioId: string): Promise<Scena
 
 export async function triggerSimulationRun(request: ScenarioRunRequest): Promise<SimulationRunResponse> {
   const url = `${API_BASE_URL}/api/v1/simulation/runs`;
-  const response = await fetch(url, {
+  const response = await authFetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -1032,7 +1041,7 @@ export async function fetchSimulationRuns(
   if (scenarioId) {
     url += `&scenario_id=${encodeURIComponent(scenarioId)}`;
   }
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load simulation runs (${response.status})`);
   }
@@ -1041,7 +1050,7 @@ export async function fetchSimulationRuns(
 
 export async function fetchSimulationRun(runId: string): Promise<SimulationRunResponse> {
   const url = `${API_BASE_URL}/api/v1/simulation/runs/${runId}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load simulation run details (${response.status})`);
   }
@@ -1050,7 +1059,7 @@ export async function fetchSimulationRun(runId: string): Promise<SimulationRunRe
 
 export async function cancelSimulationRun(runId: string): Promise<{ cancelled: boolean; run_id: string }> {
   const url = `${API_BASE_URL}/api/v1/simulation/runs/${runId}/cancel`;
-  const response = await fetch(url, { method: 'POST' });
+  const response = await authFetch(url, { method: 'POST' });
   if (!response.ok) {
     throw new Error(`Failed to cancel simulation run (${response.status})`);
   }
@@ -1059,7 +1068,7 @@ export async function cancelSimulationRun(runId: string): Promise<{ cancelled: b
 
 export async function fetchSimulationResult(runId: string): Promise<SimulationResultResponse> {
   const url = `${API_BASE_URL}/api/v1/simulation/runs/${runId}/results`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load simulation results (${response.status})`);
   }
@@ -1068,7 +1077,7 @@ export async function fetchSimulationResult(runId: string): Promise<SimulationRe
 
 export async function fetchSimulationMetrics(): Promise<GlobalDetectionMetrics> {
   const url = `${API_BASE_URL}/api/v1/simulation/metrics`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load simulation global metrics (${response.status})`);
   }
@@ -1077,7 +1086,7 @@ export async function fetchSimulationMetrics(): Promise<GlobalDetectionMetrics> 
 
 export async function fetchSubsystemCoverage(): Promise<SubsystemCoverageItem[]> {
   const url = `${API_BASE_URL}/api/v1/simulation/coverage`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load subsystem coverage matrix (${response.status})`);
   }
@@ -1086,7 +1095,7 @@ export async function fetchSubsystemCoverage(): Promise<SubsystemCoverageItem[]>
 
 export async function fetchSimulationReport(runId: string): Promise<SimulationReportResponse> {
   const url = `${API_BASE_URL}/api/v1/simulation/reports/${runId}`;
-  const response = await fetch(url);
+  const response = await authFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load simulation report (${response.status})`);
   }

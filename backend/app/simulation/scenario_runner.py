@@ -705,7 +705,7 @@ class ScenarioRunner:
             evidence_references_json="[]",
             tool_calls_count=2,
             execution_duration_ms=45,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
         self.db.add(ai_rep)
         self.db.commit()

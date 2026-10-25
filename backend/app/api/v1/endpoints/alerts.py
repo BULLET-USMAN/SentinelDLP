@@ -7,6 +7,7 @@ status with validated state transitions, and view immutable audit history.
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
+from app.core.auth import AuthUser, require_analyst, require_readonly
 from app.db.session import get_db
 from app.risk.schemas import (
     AlertStatisticsResponse,
@@ -35,6 +36,7 @@ def list_security_alerts(
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db),
+    current_user: AuthUser = Depends(require_readonly),
 ) -> PaginatedSecurityAlertsResponse:
     return assessment_service.list_alerts(
         db=db,
@@ -55,6 +57,7 @@ def list_security_alerts(
 )
 def get_alert_statistics(
     db: Session = Depends(get_db),
+    current_user: AuthUser = Depends(require_readonly),
 ) -> AlertStatisticsResponse:
     return assessment_service.get_alert_statistics(db=db)
 
@@ -68,6 +71,7 @@ def get_alert_statistics(
 def get_alert_details(
     alert_id: str,
     db: Session = Depends(get_db),
+    current_user: AuthUser = Depends(require_readonly),
 ) -> SecurityAlertDetail:
     alert = assessment_service.get_alert_by_id(alert_id=alert_id, db=db)
     if not alert:
@@ -88,13 +92,14 @@ def update_alert_status(
     alert_id: str,
     payload: UpdateAlertStatusRequest,
     db: Session = Depends(get_db),
+    current_user: AuthUser = Depends(require_analyst),
 ) -> SecurityAlertDetail:
     try:
         alert_service.update_alert_status(
             alert_id=alert_id,
             new_status=payload.status,
             analyst_notes=payload.analyst_notes,
-            performed_by=payload.performed_by or "security_analyst",
+            performed_by=payload.performed_by or current_user.username,
             db=db,
         )
     except ValueError as err:

@@ -1,7 +1,7 @@
 """Report persistence, retrieval, and analyst review service."""
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from sqlalchemy.orm import Session
 
@@ -113,7 +113,7 @@ class ReportService:
         report.analyst_review_status = status
         report.analyst_feedback_notes = notes
         report.reviewed_by = analyst_name
-        report.reviewed_at = datetime.utcnow()
+        report.reviewed_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(report)

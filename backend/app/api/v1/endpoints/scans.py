@@ -8,6 +8,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+from app.core.auth import AuthUser, require_admin, require_readonly
 from app.core.config import settings
 from app.core.exceptions import SentinelException
 from app.db.session import get_db
@@ -32,7 +33,9 @@ router = APIRouter()
     summary="Get Authorized Scan Roots",
     description="Returns administrator-configured authorized directories available for scanning.",
 )
-async def get_authorized_roots() -> List[AuthorizedRootInfo]:
+async def get_authorized_roots(
+    current_user: AuthUser = Depends(require_readonly),
+) -> List[AuthorizedRootInfo]:
     """Retrieve allowlisted scan roots."""
     roots = settings.get_authorized_roots()
     result = []
@@ -55,7 +58,11 @@ async def get_authorized_roots() -> List[AuthorizedRootInfo]:
     summary="Initiate File Scan Job",
     description="Starts a bounded background scan job against an authorized root directory.",
 )
-async def create_scan_job(request: ScanCreateRequest, db: Session = Depends(get_db)) -> ScanJobSummary:
+async def create_scan_job(
+    request: ScanCreateRequest,
+    db: Session = Depends(get_db),
+    current_user: AuthUser = Depends(require_admin),
+) -> ScanJobSummary:
     """Start a scan job for the given root identifier."""
     try:
         scan_id = scanner_engine.start_scan_job(request.root_id)
@@ -81,6 +88,7 @@ async def list_scans(
     limit: int = Query(20, ge=1, le=100, description="Max jobs to return"),
     offset: int = Query(0, ge=0, description="Records offset"),
     db: Session = Depends(get_db),
+    current_user: AuthUser = Depends(require_readonly),
 ) -> List[ScanJobSummary]:
     """List historical scan jobs."""
     jobs = (
@@ -99,7 +107,11 @@ async def list_scans(
     summary="Get Scan Job Status",
     description="Returns live progress or historical outcome for a specific scan job.",
 )
-async def get_scan_status(scan_id: str, db: Session = Depends(get_db)) -> ScanJobSummary:
+async def get_scan_status(
+    scan_id: str,
+    db: Session = Depends(get_db),
+    current_user: AuthUser = Depends(require_readonly),
+) -> ScanJobSummary:
     """Get status and metrics for a specific scan job."""
     job = db.query(ScanJob).filter(ScanJob.id == scan_id).first()
     if not job:
@@ -122,6 +134,7 @@ async def get_scan_files(
     status: Optional[str] = Query(None, description="Filter by status (scanned, skipped, error)"),
     type_mismatch: Optional[bool] = Query(None, description="Filter for signature mismatch anomalies"),
     db: Session = Depends(get_db),
+    current_user: AuthUser = Depends(require_readonly),
 ) -> PaginatedFilesResponse:
     """Retrieve paginated file inventory records for a scan job."""
     # Verify job existence
@@ -186,7 +199,11 @@ async def get_scan_files(
     summary="Cancel Running Scan Job",
     description="Requests cancellation of an ongoing file scan job.",
 )
-async def cancel_scan(scan_id: str, db: Session = Depends(get_db)) -> ScanCancellationResponse:
+async def cancel_scan(
+    scan_id: str,
+    db: Session = Depends(get_db),
+    current_user: AuthUser = Depends(require_admin),
+) -> ScanCancellationResponse:
     """Cancel a scan job in progress."""
     job = db.query(ScanJob).filter(ScanJob.id == scan_id).first()
     if not job:

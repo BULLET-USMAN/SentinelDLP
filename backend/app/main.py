@@ -19,6 +19,11 @@ from app.core.exceptions import (
     validation_exception_handler,
 )
 from app.core.logging import logger, setup_logging
+from app.core.middleware import (
+    RateLimitMiddleware,
+    RequestSizeLimitMiddleware,
+    SecurityHeadersMiddleware,
+)
 from app.schemas.health import LivenessResponse, ReadinessResponse
 from app.services.health_service import HealthService
 
@@ -74,8 +79,13 @@ def create_application() -> FastAPI:
         allow_origins=settings.ALLOWED_ORIGINS,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+        allow_headers=["Content-Type", "Authorization", "X-Requested-With", "X-API-Key"],
     )
+
+    # Phase 11 Defensive Security Middlewares
+    app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(RequestSizeLimitMiddleware, max_bytes=settings.MAX_REQUEST_BODY_BYTES)
+    app.add_middleware(RateLimitMiddleware)
 
     # Register Centralized Exception Handlers
     app.add_exception_handler(SentinelException, sentinel_exception_handler)

@@ -7,7 +7,7 @@ Ensures zero hardcoded secrets and validates values before runtime.
 import json
 import os
 from typing import Dict, List, Union
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,7 +16,7 @@ class Settings(BaseSettings):
 
     # Application Metadata
     APP_NAME: str = "SentinelDLP"
-    APP_VERSION: str = "0.10.0"
+    APP_VERSION: str = "0.11.0"
     ENVIRONMENT: str = Field(default="development", description="Current execution environment")
     DEBUG: bool = Field(default=False, description="Debug mode flag")
     API_V1_PREFIX: str = "/api/v1"
@@ -48,6 +48,23 @@ class Settings(BaseSettings):
     DB_POOL_SIZE: int = 5
     DB_MAX_OVERFLOW: int = 10
     DB_TIMEOUT_SECONDS: int = 5
+
+    # =========================================================================
+    # Phase 11: Security Hardening & Access Control Configurations
+    # =========================================================================
+    AUTH_ENABLED: bool = Field(default=True, description="Enable authentication framework")
+    AUTH_ENFORCED: bool = Field(
+        default=False,
+        description="Strictly enforce API keys/tokens on protected endpoints. When false in non-production, missing auth allows permissive dev fallback.",
+    )
+    ADMIN_API_KEY: str = Field(default="sentinel_admin_key_dev_sec", description="Administrative API Key")
+    ANALYST_API_KEY: str = Field(default="sentinel_analyst_key_dev_sec", description="SOC Analyst API Key")
+    READONLY_API_KEY: str = Field(default="sentinel_readonly_key_dev_sec", description="Read-only Auditor API Key")
+
+    # Request Body Size & Rate Limiting
+    MAX_REQUEST_BODY_BYTES: int = Field(default=10 * 1024 * 1024, description="Max request body size in bytes (10MB)")
+    RATE_LIMIT_ENABLED: bool = Field(default=True, description="Enable client IP rate limiting")
+    RATE_LIMIT_PER_MINUTE: int = Field(default=300, description="Max requests per minute per IP")
 
     # =========================================================================
     # Phase 2: File Scanning Engine & Security Boundary Configurations
@@ -131,6 +148,18 @@ class Settings(BaseSettings):
                 "description": "Platform architecture and development specifications.",
             },
         }
+
+    @model_validator(mode="after")
+    def validate_production_security(self) -> "Settings":
+        """Defensive validation preventing production deployment with insecure defaults."""
+        if self.ENVIRONMENT.lower() == "production":
+            if self.POSTGRES_PASSWORD == "sentinel_secure_dev_password":
+                raise ValueError("Insecure default database password detected in production environment.")
+            if self.ADMIN_API_KEY == "sentinel_admin_key_dev_sec":
+                raise ValueError("Insecure default administrative API key detected in production environment.")
+            if self.DEBUG:
+                raise ValueError("Debug mode must be disabled in production environment.")
+        return self
 
     model_config = SettingsConfigDict(
         env_file=".env",

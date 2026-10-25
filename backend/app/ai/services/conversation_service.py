@@ -1,7 +1,7 @@
 """Conversation session and chat memory management service for AI SOC Analyst."""
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from sqlalchemy.orm import Session
 
@@ -92,7 +92,7 @@ class ConversationService:
             tool_invocations_json=json.dumps(tool_invocations, default=str),
         )
         db.add(assistant_msg)
-        session.updated_at = datetime.utcnow()
+        session.updated_at = datetime.now(timezone.utc)
         db.commit()
         db.refresh(assistant_msg)
 

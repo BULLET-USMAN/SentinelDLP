@@ -13,6 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+from app.core.auth import AuthUser, require_admin, require_readonly
 from app.core.config import settings
 from app.db.session import get_db
 from app.models.monitoring import FileActivityEvent, MonitoringConfiguration, MonitoringSession
@@ -38,7 +39,9 @@ router = APIRouter()
     description="Returns administrator-approved root directories available for real-time monitoring.",
     tags=["Real-Time Activity Monitoring"],
 )
-async def get_monitoring_roots() -> List[MonitoringRootInfo]:
+async def get_monitoring_roots(
+    current_user: AuthUser = Depends(require_readonly),
+) -> List[MonitoringRootInfo]:
     """Retrieve allowlisted monitoring roots and active status."""
     roots = settings.get_authorized_roots()
     result = []
@@ -67,6 +70,7 @@ async def get_monitoring_roots() -> List[MonitoringRootInfo]:
 )
 async def get_monitoring_status(
     root_id: Optional[str] = Query(None, description="Target root ID (defaults to primary authorized root)"),
+    current_user: AuthUser = Depends(require_readonly),
 ) -> MonitoringStatusResponse:
     """Retrieve live monitoring status."""
     target_root = root_id or "synthetic_samples"
@@ -81,7 +85,10 @@ async def get_monitoring_status(
     description="Initiates real-time filesystem observation on an authorized root directory.",
     tags=["Real-Time Activity Monitoring"],
 )
-async def start_monitoring(request: MonitoringStartRequest) -> MonitoringStatusResponse:
+async def start_monitoring(
+    request: MonitoringStartRequest,
+    current_user: AuthUser = Depends(require_admin),
+) -> MonitoringStatusResponse:
     """Start watcher on authorized root."""
     try:
         return monitoring_manager.start_monitoring(
@@ -107,7 +114,10 @@ async def start_monitoring(request: MonitoringStartRequest) -> MonitoringStatusR
     description="Terminates real-time filesystem observation on an authorized root directory.",
     tags=["Real-Time Activity Monitoring"],
 )
-async def stop_monitoring(request: MonitoringStopRequest) -> MonitoringStatusResponse:
+async def stop_monitoring(
+    request: MonitoringStopRequest,
+    current_user: AuthUser = Depends(require_admin),
+) -> MonitoringStatusResponse:
     """Stop active watcher."""
     status_resp = monitoring_manager.stop_monitoring(request.root_id)
     if not status_resp:
@@ -131,6 +141,7 @@ async def get_monitoring_events(
     search: Optional[str] = Query(None, description="Filename substring search"),
     status: Optional[str] = Query(None, description="Filter by processing status"),
     db: Session = Depends(get_db),
+    current_user: AuthUser = Depends(require_readonly),
 ) -> PaginatedEventsResponse:
     """Retrieve paginated activity events."""
     query = db.query(FileActivityEvent)
@@ -238,6 +249,7 @@ async def get_event_details(
 async def get_monitoring_statistics(
     root_id: Optional[str] = Query(None, description="Optional root filter"),
     db: Session = Depends(get_db),
+    current_user: AuthUser = Depends(require_readonly),
 ) -> MonitoringStatisticsResponse:
     """Retrieve global or per-root event metrics."""
     query = db.query(FileActivityEvent)
@@ -280,6 +292,7 @@ async def get_monitoring_statistics(
 )
 async def stream_monitoring_events(
     root_id: str = Query("synthetic_samples", description="Root ID to stream events for"),
+    current_user: AuthUser = Depends(require_readonly),
 ) -> StreamingResponse:
     """Stream live events over HTTP using Server-Sent Events."""
     client_queue: queue.Queue[dict] = queue.Queue(maxsize=100)

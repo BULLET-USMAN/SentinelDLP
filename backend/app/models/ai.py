@@ -8,7 +8,7 @@ Defines schemas for:
 """
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import (
@@ -78,7 +78,7 @@ class AIInvestigationReport(Base):
     reviewed_by = Column(String(64), nullable=True)
     reviewed_at = Column(DateTime, nullable=True)
 
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), index=True)
     execution_duration_ms = Column(Integer, nullable=False, default=0)
 
     # Relationships
@@ -109,8 +109,8 @@ class AIConversationSession(Base):
     status = Column(String(32), nullable=False, default="ACTIVE")  # 'ACTIVE', 'ARCHIVED'
     model_id = Column(String(64), nullable=False, default="mock-sentinel-v1")
 
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow, index=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), index=True)
 
     # Relationships
     messages = relationship(
@@ -142,7 +142,7 @@ class AIConversationMessage(Base):
     evidence_references_json = Column(Text, nullable=True, default="[]")
     tool_invocations_json = Column(Text, nullable=True, default="[]")
 
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), index=True)
 
     session = relationship("AIConversationSession", back_populates="messages")
 
@@ -165,4 +165,4 @@ class AIToolAuditEvent(Base):
     error_message = Column(Text, nullable=True)
     execution_duration_ms = Column(Integer, nullable=False, default=0)
 
-    invoked_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    invoked_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), index=True)

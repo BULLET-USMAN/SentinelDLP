@@ -3,7 +3,7 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-
+from app.core.auth import AuthUser, require_analyst, require_readonly
 from app.db.session import get_db
 from app.ai.client import get_ai_status, get_supported_models_catalog
 from app.ai.services.analyst_service import AnalystService
@@ -41,6 +41,7 @@ async def analyze_investigation(
     investigation_id: str,
     payload: Optional[AnalyzeInvestigationRequest] = None,
     db: Session = Depends(get_db),
+    current_user: AuthUser = Depends(require_analyst),
 ):
     """Trigger an evidence-grounded AI security investigation report for an exfiltration case."""
     req = payload or AnalyzeInvestigationRequest()
@@ -93,6 +94,7 @@ def submit_report_feedback(
     report_id: str,
     payload: AnalystFeedbackRequest,
     db: Session = Depends(get_db),
+    current_user: AuthUser = Depends(require_analyst),
 ):
     """Record human analyst review feedback (USEFUL, INCORRECT, NEEDS_REVIEW) on an AI report."""
     updated = ReportService.record_feedback(
@@ -114,6 +116,7 @@ def submit_report_feedback(
 async def chat_with_analyst(
     payload: ChatMessageRequest,
     db: Session = Depends(get_db),
+    current_user: AuthUser = Depends(require_analyst),
 ):
     """Submit a security inquiry to the AI SOC Analyst and receive a grounded response."""
     try:

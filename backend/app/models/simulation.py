@@ -7,7 +7,7 @@ Defines schemas for:
 """
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import (
     Column,
@@ -48,7 +48,7 @@ class SimulationRun(Base):
     metrics_json = Column(Text, nullable=False, default="{}")
     execution_log_json = Column(Text, nullable=False, default="[]")
 
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
 
     # Relationships
     results = relationship(
@@ -107,7 +107,7 @@ class SimulationResult(Base):
     latency_ms = Column(Float, nullable=False, default=0.0)
 
     failure_reasons_json = Column(Text, nullable=False, default="[]")
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
 
     # Relationships
     run = relationship("SimulationRun", back_populates="results")
@@ -129,7 +129,7 @@ class SimulationReport(Base):
     title = Column(String(256), nullable=False)
     markdown_content = Column(Text, nullable=False)
     execution_metadata_json = Column(Text, nullable=False, default="{}")
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
 
     # Relationships
     run = relationship("SimulationRun", back_populates="report")

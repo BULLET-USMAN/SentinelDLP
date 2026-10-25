@@ -31,7 +31,7 @@ class SimulationService:
             raise ValueError(f"Unknown scenario ID: {request.scenario_id}")
 
         run_id = str(uuid.uuid4())
-        started_at = datetime.utcnow()
+        started_at = datetime.now(timezone.utc)
 
         # 1. Create initial Run record
         run = SimulationRun(
@@ -59,7 +59,7 @@ class SimulationService:
         eval_result = runner.run()
 
         # 3. Create Result record
-        completed_at = datetime.utcnow()
+        completed_at = datetime.now(timezone.utc)
         result = SimulationResult(
             id=str(uuid.uuid4()),
             run_id=run.id,
@@ -164,7 +164,7 @@ class SimulationService:
             return False
         if run.status in ("PENDING", "RUNNING"):
             run.status = "CANCELLED"
-            run.completed_at = datetime.utcnow()
+            run.completed_at = datetime.now(timezone.utc)
             run.summary = "Simulation run was cancelled by user."
             db.commit()
             return True

@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
+from app.core.auth import AuthUser, require_admin, require_readonly
 from app.db.session import get_db
 from app.models.network import (
     NetworkAlertReference,
@@ -211,6 +212,7 @@ def list_network_rules() -> List[NetworkRuleDefinitionResponse]:
 def ingest_network_telemetry(
     payload: NetworkIngestRequest,
     db: Session = Depends(get_db),
+    current_user: AuthUser = Depends(require_admin),
 ) -> NetworkIngestResponse:
     return network_engine.ingest_telemetry(
         db=db,
@@ -231,6 +233,7 @@ def ingest_network_telemetry(
 def simulate_network_scenario(
     payload: NetworkSimulateRequest = NetworkSimulateRequest(),
     db: Session = Depends(get_db),
+    current_user: AuthUser = Depends(require_admin),
 ) -> NetworkIngestResponse:
     return network_engine.simulate_scenario(db=db, scenario_type=payload.scenario_type)
 
@@ -258,6 +261,7 @@ def list_threat_intel_indicators(
 def create_threat_intel_indicator(
     payload: ThreatIntelIndicatorCreate,
     db: Session = Depends(get_db),
+    current_user: AuthUser = Depends(require_admin),
 ) -> ThreatIntelIndicatorResponse:
     ind = ThreatIntelIndicator(
         indicator_type=payload.indicator_type.upper(),

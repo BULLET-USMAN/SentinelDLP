@@ -13,6 +13,36 @@ export const DocumentationPage: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        {/* Phase 11 Implemented */}
+        <div style={{
+          backgroundColor: 'var(--bg-card)',
+          border: '1px solid rgba(16, 185, 129, 0.4)',
+          borderRadius: '8px',
+          padding: '1.5rem',
+        }}>
+          <h2 style={{ fontSize: '1.15rem', color: '#10b981', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>✓</span> Phase 11 Active: Advanced Security Hardening, Vulnerability Assessment & Performance Optimization
+          </h2>
+          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Authentication & Role-Based Access Control (RBAC):</strong>
+              Timing-safe token/key verification enforcing granular roles (<code>ADMIN</code>, <code>ANALYST</code>, <code>READONLY</code>) across all API endpoints with zero credential leakage.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Defensive Security Middlewares:</strong>
+              Direct ASGI security headers (nosniff, DENY, CSP, Referrer-Policy), 10MB payload size limits (HTTP 413), and in-memory IP sliding-window rate limiting.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Path Traversal & Sandbox Enforcement:</strong>
+              Strict boundary enforcement blocking unauthorized file access in network log ingestion (CWE-22) and automatic rejection of cyberattack simulation runs in production environments.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Production Security Guardrails:</strong>
+              Automated configuration validation blocking deployment with default database credentials, weak API keys, or active debug flags.
+            </li>
+          </ul>
+        </div>
+
         {/* Phase 10 Implemented */}
         <div style={{
           backgroundColor: 'var(--bg-card)',
@@ -340,12 +370,12 @@ export const DocumentationPage: React.FC = () => {
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', fontSize: '0.85rem' }}>
             <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-primary)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
-              <h4 style={{ color: 'var(--text-primary)', marginBottom: '0.25rem' }}>Phase 11: Enterprise Multi-Tenancy & Fleet Orchestration</h4>
-              <p style={{ color: 'var(--text-muted)' }}>Distributed lightweight cross-platform agents, tenant isolation boundaries, and central management policy distribution.</p>
-            </div>
-            <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-primary)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
               <h4 style={{ color: 'var(--text-primary)', marginBottom: '0.25rem' }}>Phase 12: Automated Containment & Response</h4>
               <p style={{ color: 'var(--text-muted)' }}>Adaptive endpoint quarantine, zero-trust session revocation, and policy-driven remediation playbooks.</p>
+            </div>
+            <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-primary)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+              <h4 style={{ color: 'var(--text-primary)', marginBottom: '0.25rem' }}>Phase 13: Enterprise Multi-Tenancy & Fleet Orchestration</h4>
+              <p style={{ color: 'var(--text-muted)' }}>Distributed lightweight cross-platform agents, tenant isolation boundaries, and central management policy distribution.</p>
             </div>
           </div>
         </div>

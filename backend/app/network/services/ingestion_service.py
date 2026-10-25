@@ -15,13 +15,17 @@ from datetime import datetime, timezone
 import io
 import json
 import os
+from pathlib import Path
 from typing import Generator, List, Optional, Tuple
 from sqlalchemy.orm import Session
+from app.core.config import settings
+from app.core.logging import logger
 from app.models.network import NetworkEvent, NetworkIngestionJob, NetworkSensor
 from app.network.adapters.pcap_adapter import PcapAdapter
 from app.network.adapters.suricata_adapter import SuricataAdapter
 from app.network.adapters.zeek_adapter import ZeekAdapter
 from app.network.schemas import NetworkIngestResponse, NormalizedNetworkEvent
+from app.scanner.validators import SecurityBoundaryException
 
 
 class NetworkIngestionService:
@@ -46,6 +50,51 @@ class NetworkIngestionService:
             db.commit()
             db.refresh(sensor)
         return sensor
+
+    @staticmethod
+    def _validate_ingestion_path(file_path: Optional[str]) -> Path:
+        """Verify that file_path resides strictly within authorized directory boundaries.
+
+        Defends against arbitrary file reads and directory traversal (CWE-22 / CWE-73).
+        """
+        if not file_path or not str(file_path).strip():
+            raise ValueError("File path cannot be empty")
+
+        try:
+            path_obj = Path(file_path).resolve()
+        except Exception as e:
+            raise SecurityBoundaryException(f"Invalid path format: {str(e)}", code="INVALID_PATH")
+
+        # Determine all authorized roots where files can be ingested from
+        authorized_dirs = [
+            Path(meta["path"]).resolve()
+            for meta in settings.get_authorized_roots().values()
+            if "path" in meta
+        ]
+
+        is_authorized = False
+        for auth_dir in authorized_dirs:
+            try:
+                path_obj.relative_to(auth_dir)
+                is_authorized = True
+                break
+            except ValueError:
+                continue
+
+        if not is_authorized:
+            logger.warning(
+                f"Path traversal blocked in network ingestion: '{file_path}' resolves outside authorized roots",
+                extra={"event": "path_traversal_blocked", "file_path": file_path},
+            )
+            raise SecurityBoundaryException(
+                f"Access denied: file path resolves outside authorized scan roots: '{file_path}'",
+                code="UNAUTHORIZED_FILE_ACCESS",
+            )
+
+        if not path_obj.exists() or not path_obj.is_file():
+            raise FileNotFoundError(f"Authorized network file not found: {file_path}")
+
+        return path_obj
 
     @classmethod
     def ingest_stream_or_file(
@@ -92,9 +141,8 @@ class NetworkIngestionService:
         try:
             # 3. Setup generator based on input and format
             if fmt == "PCAP":
-                if not file_path or not os.path.exists(file_path):
-                    raise FileNotFoundError(f"PCAP file not found: {file_path}")
-                with open(file_path, "rb") as f:
+                validated_pcap = cls._validate_ingestion_path(file_path)
+                with open(validated_pcap, "rb") as f:
                     generator = PcapAdapter.parse_pcap_stream(f, sensor_id=sensor.sensor_id)
                     for norm_event, is_valid, err_msg in generator:
                         if not is_valid or not norm_event:
@@ -113,8 +161,9 @@ class NetworkIngestionService:
                     if raw_content:
                         for l in raw_content.splitlines():
                             yield l
-                    elif file_path and os.path.exists(file_path):
-                        with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                    elif file_path:
+                        validated_file = cls._validate_ingestion_path(file_path)
+                        with open(validated_file, "r", encoding="utf-8", errors="ignore") as f:
                             for l in f:
                                 yield l
                     else:

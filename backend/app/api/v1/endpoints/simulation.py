@@ -4,7 +4,10 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from app.core.auth import AuthUser, require_admin, require_readonly
+from app.core.config import settings
 from app.db.session import get_db
+from app.simulation.config import simulation_settings
 from app.simulation.scenario_registry import get_all_scenarios, get_scenario
 from app.simulation.schemas import (
     GlobalDetectionMetrics,
@@ -45,8 +48,14 @@ def get_scenario_detail(scenario_id: str):
 def execute_scenario_run(
     request: ScenarioRunRequest,
     db: Session = Depends(get_db),
+    current_user: AuthUser = Depends(require_admin),
 ):
     """Execute a controlled attack simulation or validation scenario."""
+    if settings.ENVIRONMENT.lower() == "production" and not simulation_settings.allow_production_simulation:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cyberattack simulation execution is disabled in production environments by default.",
+        )
     try:
         return SimulationService.start_run(db=db, request=request)
     except ValueError as e:

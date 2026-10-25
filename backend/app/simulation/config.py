@@ -21,6 +21,12 @@ class SimulationSettings(BaseModel):
     auto_cleanup_default: bool = True
     preserve_reports: bool = True
 
+    # Production safety guard
+    allow_production_simulation: bool = Field(
+        default=False,
+        description="Explicit override permitting cyberattack simulations in production environment",
+    )
+
     @property
     def simulation_dir_path(self) -> Path:
         """Resolve absolute path to sample_data/simulation_lab."""
