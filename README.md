@@ -17,7 +17,7 @@ Designed with modular, defense-in-depth principles, SentinelDLP emphasizes zero-
 
 ---
 
-## 2. Implementation Status: Phase 6 Complete
+## 2. Implementation Status: Phase 7 Complete
 
 - **[COMPLETED] Phase 1 — Project Foundation & Architecture**
   - Robust FastAPI asynchronous backend, SQLAlchemy 2.0 ORM, and Alembic database migrations.
@@ -53,19 +53,41 @@ Designed with modular, defense-in-depth principles, SentinelDLP emphasizes zero-
   - **Bounded Temporal Correlation**: Evaluates telemetry across configurable time windows (1m, 5m, 15m, 30m, 60m), linking sensitive file access, archive staging, and outbound transfer telemetry.
   - **Archive Activity Staging Recognition**: Recognizes creation, modification, and renaming of archives (`.zip`, `.tar`, `.gz`, `.7z`, `.rar`, etc.) without asserting unsupported causal claims regarding contents.
   - **Synthetic Transfer Telemetry Interface**: Simulates and ingests outbound transfer evidence explicitly tagged with `LAB_SIMULATED` provenance.
-  - **8 Operational Exfiltration Detection Rules**:
-    1. `EXFIL-001`: High-Volume Sensitive File Activity (&ge;5 sensitive operations within window).
-    2. `EXFIL-002`: Sensitive Activity Followed by Archive Creation (staging detection).
-    3. `EXFIL-003`: Archive Activity Followed by Outbound Transfer Evidence.
-    4. `EXFIL-004`: Unusual Outbound Transfer Volume (&ge;5MB standard, &ge;50MB critical).
-    5. `EXFIL-005`: Unfamiliar Destination (outbound transfer outside authorized baseline allowlist).
-    6. `EXFIL-006`: Repeated Outbound Transfers (&ge;3 iterative or chunked transfers).
-    7. `EXFIL-007`: Multi-Signal Potential Exfiltration (full kill-chain: collection &rarr; staging &rarr; transfer).
-    8. `EXFIL-008`: Insufficient Evidence (flags isolated signals with diagnostic caution and low confidence).
+  - **8 Operational Exfiltration Detection Rules**: `EXFIL-001` through `EXFIL-008` linking file activity, staging, volume anomalies, unfamiliar destinations, chunked transfers, and kill-chain exfiltration patterns.
   - **Strict Evidence Provenance Taxonomy**: `OBSERVED`, `IMPORTED`, `LAB_SIMULATED`, `INFERRED`.
   - **Forensic Relationship Modesty**: Labels connections as `temporal`, `circumstantial`, or `verified`.
-  - **Frontend Exfiltration Dashboard**: Interactive SOC console with KPI metrics, filterable investigations, slide-out forensic timeline drawer, and lab telemetry generator.
-- **[PLANNED] Phase 7 — Automated Containment & Defensive Security Response Engine**
+- **[COMPLETED] Phase 7 — Advanced Network Traffic Monitoring, Detection Engineering & Threat Intelligence**
+  - **Multi-Source Network Telemetry Pipeline**:
+    - **Offline Zeek Log Adapter**: Ingests JSON log records (`conn.log`, `dns.log`, `http.log`, `ssl.log`/`tls.log`) mapping connection metrics, durations, byte counts, and protocol metadata.
+    - **Suricata EVE JSON Adapter**: Parses normalized event streams (`flow`, `alert`, `dns` v1/v2, `http`, `tls`, `stats`), extracting signature metadata and Suricata SIDs.
+    - **Offline Pure-Python PCAP Parser**: Zero-dependency binary parser inspecting Global and Packet headers, Ethernet, IPv4, TCP, and UDP structures. Discards raw payload data immediately at the parsing boundary to guarantee zero private payload leakage.
+  - **Unified Normalized Network Event Schema (`NetworkEvent`)**:
+    - Standardized 5-tuple (`source_ip`, `source_port`, `destination_ip`, `destination_port`, `transport_protocol`), application protocol, directionality (`OUTBOUND`, `INBOUND`, `INTERNAL`, `LATERAL`), duration, byte breakdowns (Tx/Rx), packet counts, DNS query metadata, TLS SNI, HTTP stem, and IDS signature mappings.
+  - **Sensor Registry & Health Auditing**:
+    - Registers Zeek, Suricata, and PCAP monitoring sensors with explicit health states (`ACTIVE`, `DEGRADED`, `OFFLINE`, `VISIBILITY_GAP`).
+    - Explicitly surfaces Windows / Docker container boundary restrictions where promiscuous host packet sniffing is infeasible without driver installation, highlighting offline file and log ingestion capabilities.
+  - **Privacy-First Local Threat Intelligence Registry**:
+    - Local indicator catalog (`ThreatIntelIndicator`) storing administrator-defined IPv4, Domain, and CIDR indicators categorized as `TRUSTED`, `SUSPICIOUS`, `UNKNOWN`, and `MALICIOUS`.
+    - Operates 100% offline with RFC 1918 internal subnet awareness, preventing private corporate IP address leakage to external intelligence APIs.
+  - **10 Network Detection Rules (`NET-001` through `NET-010`)**:
+    1. `NET-001`: Unusual Outbound Traffic Volume (&ge;10MB standard, &ge;100MB critical).
+    2. `NET-002`: Repeated Connection Attempts (&ge;5 outbound flows to same remote endpoint).
+    3. `NET-003`: Multi-Port Connection Activity (&ge;4 distinct ports scanned/connected).
+    4. `NET-004`: Unusual DNS Query Frequency (&ge;20 queries to single domain within 5m window).
+    5. `NET-005`: DNS Query Pattern Anomalies (Shannon entropy &gt;3.8 or subdomain label &gt;52 chars indicative of DNS tunneling).
+    6. `NET-006`: Unfamiliar Outbound Destination (external flow outside trusted allowlists).
+    7. `NET-007`: Suricata Signature Alert (direct mapping to SentinelDLP alert engine with SID attribution).
+    8. `NET-008`: Network and Sensitive File Activity Correlation (bridges network telemetry with Phase 6 exfiltration investigations, tagging transfer evidence as `IMPORTED` or `OBSERVED` with explicit `circumstantial` relationship tags).
+    9. `NET-009`: Network Visibility Gap (diagnostic coverage warning when sensor offline or restricted by container boundary).
+    10. `NET-010`: Multi-Signal Network Investigation (compound detection requiring multiple independent network risk indicators).
+  - **Frontend Network Intelligence Dashboard**:
+    - Interactive traffic volume timeline chart with 1h / 24h / 7d intervals.
+    - Searchable network connections table with multi-parameter filtering (Source IP, Destination IP, Protocol, Min Bytes).
+    - Top outbound destinations table and offline Threat Intelligence indicator management modal.
+    - DNS Intelligence panel tracking Shannon entropy anomalies and high-frequency domain lookups.
+    - IDS Alerts table with Suricata signature mappings and 10 active detection rule specifications.
+    - Sensor health and ingestion job audit trail with slide-out event inspector drawer.
+- **[PLANNED] Phase 8 — Automated Containment & Defensive Security Response Engine**
 
 ---
 
@@ -205,6 +227,25 @@ Filesystem observer telemetry indicates file creation, modification, deletion, a
 | `POST` | `/api/v1/exfiltration/transfers/simulate` | Generate synthetic lab exfiltration scenarios for testing & demonstration |
 | `GET` | `/api/v1/exfiltration/transfers` | List recorded outbound transfer telemetry events |
 
+### Phase 7 Network Telemetry & Threat Intelligence API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/v1/network/status` | Network sensor health overview, active sensor counts, and visibility gap warnings |
+| `GET` | `/api/v1/network/sensors` | List registered network monitoring sensors (Zeek, Suricata, PCAP Analyzer) |
+| `GET` | `/api/v1/network/connections` | Paginated flow events filterable by source IP, destination IP, protocol, min bytes |
+| `GET` | `/api/v1/network/dns` | DNS query frequency distribution, NXDOMAIN counters, and entropy anomalies |
+| `GET` | `/api/v1/network/alerts` | Normalized IDS alerts (Suricata signatures and Zeek notices) with severity tags |
+| `GET` | `/api/v1/network/statistics` | Dashboard KPI metrics (connections, outbound bytes, DNS queries, IDS alerts) |
+| `GET` | `/api/v1/network/traffic-summary` | Time-series outbound volume trends for `1h`, `24h`, and `7d` intervals |
+| `GET` | `/api/v1/network/destinations` | Top outbound remote destinations with threat intelligence categorization badges |
+| `GET` | `/api/v1/network/ingestion-jobs` | Ingestion audit trail tracking processed, rejected, and deduplicated records |
+| `GET` | `/api/v1/network/rules` | Registered catalog of all 10 network detection rules (NET-001 through NET-010) |
+| `POST` | `/api/v1/network/ingest` | Ingest offline Zeek JSON, Suricata EVE JSON, or PCAP binary headers |
+| `POST` | `/api/v1/network/simulate` | Generate synthetic test scenarios (Zeek upload, Suricata SID alert, DNS burst) |
+| `GET` | `/api/v1/network/threat-intel/indicators` | List administrator-configured offline indicator catalog (IPv4, Domain, CIDR) |
+| `POST` | `/api/v1/network/threat-intel/indicators` | Register new local threat intelligence indicator |
+
 ---
 
 ## 6. Database Schema & Migrations
@@ -217,6 +258,7 @@ Database schema management is handled via Alembic migrations:
 4. `0004_file_activity_monitoring.py`: `monitoring_configurations`, `file_activity_events`, and `monitoring_sessions` tables for Phase 4 real-time tracking.
 5. `0005_risk_scoring_and_alerts.py`: `risk_assessments`, `rule_matches`, `security_alerts`, and `alert_audit_logs` tables for Phase 5 risk scoring and SOC triage.
 6. `0006_exfiltration_correlation.py`: `transfer_events`, `exfiltration_investigations`, `correlation_records`, and `investigation_evidence_links` tables for Phase 6 multi-signal correlation.
+7. `0007_network_monitoring.py`: `network_sensors`, `network_events`, `network_alert_references`, `network_ingestion_jobs`, `network_baselines`, and `threat_intel_indicators` tables for Phase 7 network intelligence.
 
 ---
 
@@ -260,7 +302,7 @@ npm.cmd run dev
 
 SentinelDLP maintains a comprehensive automated test suite spanning unit tests, integration tests, boundary verifications, and cryptographic vectors.
 
-Run the full pytest suite (95 tests across Phases 1 through 6):
+Run the full pytest suite (**122 tests passed across Phases 1 through 7**):
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -v backend\tests
@@ -272,6 +314,7 @@ Run the full pytest suite (95 tests across Phases 1 through 6):
 - **Phase 4 Monitoring**: Watchdog event normalization, path traversal blocking, 0.4s sliding-window debouncing, bounded queue saturation & overflow tracking, live session lifecycle, and SSE event streaming.
 - **Phase 5 Risk Engine**: 0–100 score normalization, diminishing returns formula, 8 security detection rules evaluated individually and in combinations, alert deduplication and 300s sliding-window suppression, analyst triage lifecycle transitions, audit logging, and REST API validation.
 - **Phase 6 Exfiltration Engine**: Bounded temporal correlation across 1m, 5m, 15m, 30m, and 60m windows, 8 deterministic exfiltration rules (EXFIL-001 through EXFIL-008), multi-signal chain reconstruction, strict provenance tagging (OBSERVED, IMPORTED, LAB_SIMULATED, INFERRED), forensic relationship taxonomy (temporal, circumstantial, verified), chronological timeline synthesis, and REST API integration.
+- **Phase 7 Network Engine**: Offline Zeek JSON adapter (`conn.log`, `dns.log`, `http.log`, `ssl.log`), Suricata EVE JSON parser, zero-payload binary PCAP parser, 10 network detection rules (NET-001 through NET-010), offline threat intelligence lookup, deduplication logic, and full REST API endpoint validation.
 
 ---
 
@@ -283,5 +326,5 @@ Run the full pytest suite (95 tests across Phases 1 through 6):
 - **[x] Phase 4: Real-Time File Activity Monitoring & Security Event Collection**
 - **[x] Phase 5: Intelligent Threat Risk Scoring, Detection Rules & Security Alert Engine**
 - **[x] Phase 6: Advanced Data Exfiltration Detection & Security Event Correlation Engine**
-- **[ ] Phase 7: Automated Containment & Defensive Security Response Engine**
-- **[ ] Phase 6: AI-Assisted Exfiltration Correlation, Incident Reconstruction & Response**
+- **[x] Phase 7: Advanced Network Traffic Monitoring, Detection Engineering & Threat Intelligence**
+- **[ ] Phase 8: Automated Containment & Defensive Security Response Engine**

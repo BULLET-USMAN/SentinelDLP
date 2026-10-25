@@ -21,6 +21,14 @@ from app.models.exfiltration import (
     InvestigationEvidenceLink,
     TransferEvent,
 )
+from app.models.network import (
+    NetworkAlertReference,
+    NetworkBaseline,
+    NetworkEvent,
+    NetworkIngestionJob,
+    NetworkSensor,
+    ThreatIntelIndicator,
+)
 
 __all__ = [
     "Base",
@@ -41,4 +49,10 @@ __all__ = [
     "ExfiltrationInvestigation",
     "CorrelationRecord",
     "InvestigationEvidenceLink",
+    "NetworkSensor",
+    "NetworkEvent",
+    "NetworkAlertReference",
+    "NetworkIngestionJob",
+    "NetworkBaseline",
+    "ThreatIntelIndicator",
 ]

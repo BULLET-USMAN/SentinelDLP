@@ -7,6 +7,7 @@ from app.api.v1.endpoints import (
     exfiltration,
     health,
     monitoring,
+    network,
     placeholder_detection,
     risk,
     scans,
@@ -53,6 +54,12 @@ api_v1_router.include_router(
 api_v1_router.include_router(
     exfiltration.router,
     tags=["Data Exfiltration Correlation"],
+)
+
+# Phase 7: Advanced Network Traffic Monitoring & Threat Intelligence routes
+api_v1_router.include_router(
+    network.router,
+    tags=["Network Intelligence"],
 )
 
 # Placeholder detection routes (Phase 1 legacy compatibility)

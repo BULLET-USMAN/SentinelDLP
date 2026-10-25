@@ -1,8 +1,8 @@
 import React from 'react';
 
 interface NavbarProps {
-  currentTab: 'exfiltration' | 'risk' | 'activity' | 'detection' | 'scanner' | 'status' | 'docs';
-  onSelectTab: (tab: 'exfiltration' | 'risk' | 'activity' | 'detection' | 'scanner' | 'status' | 'docs') => void;
+  currentTab: 'network' | 'exfiltration' | 'risk' | 'activity' | 'detection' | 'scanner' | 'status' | 'docs';
+  onSelectTab: (tab: 'network' | 'exfiltration' | 'risk' | 'activity' | 'detection' | 'scanner' | 'status' | 'docs') => void;
   isBackendConnected: boolean;
 }
 
@@ -24,12 +24,12 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, isBacke
           width: '36px',
           height: '36px',
           borderRadius: '8px',
-          backgroundColor: 'rgba(16, 185, 129, 0.1)',
-          border: '1px solid var(--accent-green)',
+          backgroundColor: 'rgba(6, 182, 212, 0.1)',
+          border: '1px solid #06b6d4',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: 'var(--accent-green)',
+          color: '#06b6d4',
         }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -38,7 +38,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, isBacke
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ fontWeight: 700, fontSize: '1.15rem', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
-              Sentinel<span style={{ color: 'var(--accent-green)' }}>DLP</span>
+              Sentinel<span style={{ color: '#06b6d4' }}>DLP</span>
             </span>
             <span style={{
               fontSize: '0.65rem',
@@ -50,7 +50,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, isBacke
               border: '1px solid rgba(6, 182, 212, 0.35)',
               textTransform: 'uppercase',
             }}>
-              Phase 6 Active
+              Phase 7 Active
             </span>
           </div>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
@@ -59,29 +59,47 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, isBacke
         </div>
       </div>
 
-      <nav style={{ display: 'flex', gap: '0.5rem' }}>
+      <nav style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
         <button
-          onClick={() => onSelectTab('exfiltration')}
+          onClick={() => onSelectTab('network')}
           style={{
-            padding: '0.5rem 1rem',
+            padding: '0.5rem 0.85rem',
             borderRadius: '6px',
             fontSize: '0.875rem',
             fontWeight: 600,
             transition: 'all 0.2s ease',
-            backgroundColor: currentTab === 'exfiltration' ? 'var(--bg-tertiary)' : 'transparent',
-            color: currentTab === 'exfiltration' ? '#06b6d4' : 'var(--text-secondary)',
-            border: currentTab === 'exfiltration' ? '1px solid #06b6d4' : '1px solid transparent',
+            backgroundColor: currentTab === 'network' ? 'var(--bg-tertiary)' : 'transparent',
+            color: currentTab === 'network' ? '#06b6d4' : 'var(--text-secondary)',
+            border: currentTab === 'network' ? '1px solid #06b6d4' : '1px solid transparent',
             display: 'flex',
             alignItems: 'center',
             gap: '0.4rem',
           }}
         >
-          <span>🌐</span> Data Exfiltration
+          <span>🌐</span> Network Intel
+        </button>
+        <button
+          onClick={() => onSelectTab('exfiltration')}
+          style={{
+            padding: '0.5rem 0.85rem',
+            borderRadius: '6px',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            transition: 'all 0.2s ease',
+            backgroundColor: currentTab === 'exfiltration' ? 'var(--bg-tertiary)' : 'transparent',
+            color: currentTab === 'exfiltration' ? '#38bdf8' : 'var(--text-secondary)',
+            border: currentTab === 'exfiltration' ? '1px solid #38bdf8' : '1px solid transparent',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+          }}
+        >
+          <span>🕵️</span> Exfiltration
         </button>
         <button
           onClick={() => onSelectTab('risk')}
           style={{
-            padding: '0.5rem 1rem',
+            padding: '0.5rem 0.85rem',
             borderRadius: '6px',
             fontSize: '0.875rem',
             fontWeight: 600,
@@ -94,12 +112,12 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, isBacke
             gap: '0.4rem',
           }}
         >
-          <span>🚨</span> Risk Intelligence
+          <span>🚨</span> Risk Intel
         </button>
         <button
           onClick={() => onSelectTab('activity')}
           style={{
-            padding: '0.5rem 1rem',
+            padding: '0.5rem 0.85rem',
             borderRadius: '6px',
             fontSize: '0.875rem',
             fontWeight: 600,
@@ -117,7 +135,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, isBacke
         <button
           onClick={() => onSelectTab('detection')}
           style={{
-            padding: '0.5rem 1rem',
+            padding: '0.5rem 0.85rem',
             borderRadius: '6px',
             fontSize: '0.875rem',
             fontWeight: 600,
@@ -135,7 +153,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, isBacke
         <button
           onClick={() => onSelectTab('scanner')}
           style={{
-            padding: '0.5rem 1rem',
+            padding: '0.5rem 0.85rem',
             borderRadius: '6px',
             fontSize: '0.875rem',
             fontWeight: 500,
@@ -145,12 +163,12 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, isBacke
             border: currentTab === 'scanner' ? '1px solid var(--border-active)' : '1px solid transparent',
           }}
         >
-          File Scanner & Inventory
+          Scanner
         </button>
         <button
           onClick={() => onSelectTab('status')}
           style={{
-            padding: '0.5rem 1rem',
+            padding: '0.5rem 0.85rem',
             borderRadius: '6px',
             fontSize: '0.875rem',
             fontWeight: 500,
@@ -160,12 +178,12 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, isBacke
             border: currentTab === 'status' ? '1px solid var(--border-active)' : '1px solid transparent',
           }}
         >
-          System Health
+          Health
         </button>
         <button
           onClick={() => onSelectTab('docs')}
           style={{
-            padding: '0.5rem 1rem',
+            padding: '0.5rem 0.85rem',
             borderRadius: '6px',
             fontSize: '0.875rem',
             fontWeight: 500,
@@ -175,7 +193,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, isBacke
             border: currentTab === 'docs' ? '1px solid var(--border-active)' : '1px solid transparent',
           }}
         >
-          Architecture & Roadmap
+          Docs
         </button>
       </nav>
 

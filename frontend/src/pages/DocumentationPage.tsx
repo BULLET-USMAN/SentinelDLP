@@ -13,6 +13,40 @@ export const DocumentationPage: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        {/* Phase 7 Implemented */}
+        <div style={{
+          backgroundColor: 'var(--bg-card)',
+          border: '1px solid rgba(6, 182, 212, 0.4)',
+          borderRadius: '8px',
+          padding: '1.5rem',
+        }}>
+          <h2 style={{ fontSize: '1.15rem', color: '#06b6d4', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>✓</span> Phase 7 Active: Advanced Network Traffic Monitoring, Detection Engineering & Threat Intelligence
+          </h2>
+          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Multi-Technology Ingestion Pipeline:</strong>
+              Offline Zeek JSON log adapter (conn, dns, http, ssl), Suricata EVE JSON adapter (flow, alert, dns v1/v2), and pure-Python binary PCAP analyzer with zero raw payload retention.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• 10 Defensive Detection Rules (NET-001 — NET-010):</strong>
+              NET-001 (Volume Spikes), NET-002 (Repeated Attempts), NET-003 (Multi-Port Activity), NET-004 (DNS Frequency), NET-005 (DNS Shannon Entropy &gt;3.8), NET-006 (Unfamiliar Destination), NET-007 (Suricata Signatures), NET-008 (Sensitive File &amp; Network Correlation), NET-009 (Visibility Gap Diagnostics), NET-010 (Multi-Signal Network Investigation).
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Privacy-First Threat Intelligence:</strong>
+              Local offline indicator lookup registry with RFC 1918 internal boundaries and corporate allowlists. Zero external API calls to prevent internal IP leaks.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Forensic Evidence Lineage & Causal Modesty:</strong>
+              Network-to-file activity correlation records transfer evidence with explicit IMPORTED or OBSERVED provenance and marks relationships as circumstantial because encrypted payloads cannot be causally proven from flow headers alone.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Sensor Health & Coverage Gap Auditing:</strong>
+              Explicit tracking of container isolation boundaries and sensor statuses with diagnostic warnings.
+            </li>
+          </ul>
+        </div>
+
         {/* Phase 6 Implemented */}
         <div style={{
           backgroundColor: 'var(--bg-card)',

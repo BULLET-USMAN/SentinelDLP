@@ -36,6 +36,21 @@ import {
   InvestigationStatus,
   TransferEventItem,
 } from '../types/exfiltration';
+import {
+  DNSIntelligenceResponse,
+  NetworkAlertItem,
+  NetworkIngestionJobItem,
+  NetworkIngestResponse,
+  NetworkRuleDefinition,
+  NetworkSensorItem,
+  NetworkStatistics,
+  NetworkStatusResponse,
+  PaginatedNetworkEventsResponse,
+  ThreatIntelIndicatorCreate,
+  ThreatIntelIndicatorItem,
+  TopDestinationItem,
+  TrafficSummaryResponse,
+} from '../types/network';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
@@ -600,6 +615,186 @@ export async function fetchTransferEvents(limit: number = 50): Promise<TransferE
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch transfers (${response.status})`);
+  }
+  return response.json();
+}
+
+// =========================================================================
+// Phase 7 Network Intelligence & Threat Monitoring API Calls
+// =========================================================================
+
+export async function fetchNetworkStatus(): Promise<NetworkStatusResponse> {
+  const url = `${API_BASE_URL}/api/v1/network/status`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load network status (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchNetworkSensors(): Promise<NetworkSensorItem[]> {
+  const url = `${API_BASE_URL}/api/v1/network/sensors`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load network sensors (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchNetworkConnections(params?: {
+  source_ip?: string;
+  destination_ip?: string;
+  transport_protocol?: string;
+  min_bytes?: number;
+  limit?: number;
+  offset?: number;
+}): Promise<PaginatedNetworkEventsResponse> {
+  const queryParams = new URLSearchParams();
+  if (params?.source_ip) queryParams.set('source_ip', params.source_ip);
+  if (params?.destination_ip) queryParams.set('destination_ip', params.destination_ip);
+  if (params?.transport_protocol) queryParams.set('transport_protocol', params.transport_protocol);
+  if (params?.min_bytes !== undefined && params.min_bytes !== null) {
+    queryParams.set('min_bytes', params.min_bytes.toString());
+  }
+  if (params?.limit) queryParams.set('limit', params.limit.toString());
+  if (params?.offset !== undefined && params.offset !== null) {
+    queryParams.set('offset', params.offset.toString());
+  }
+
+  const url = `${API_BASE_URL}/api/v1/network/connections?${queryParams.toString()}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load network connections (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchNetworkDNS(limit: number = 15): Promise<DNSIntelligenceResponse> {
+  const url = `${API_BASE_URL}/api/v1/network/dns?limit=${limit}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load DNS intelligence (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchNetworkAlerts(limit: number = 50): Promise<NetworkAlertItem[]> {
+  const url = `${API_BASE_URL}/api/v1/network/alerts?limit=${limit}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load network alerts (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchNetworkStatistics(): Promise<NetworkStatistics> {
+  const url = `${API_BASE_URL}/api/v1/network/statistics`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load network statistics (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchTrafficSummary(interval: '1h' | '24h' | '7d' = '24h'): Promise<TrafficSummaryResponse> {
+  const url = `${API_BASE_URL}/api/v1/network/traffic-summary?interval=${interval}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load traffic summary (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchTopDestinations(limit: number = 10): Promise<TopDestinationItem[]> {
+  const url = `${API_BASE_URL}/api/v1/network/destinations?limit=${limit}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load top destinations (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchIngestionJobs(limit: number = 25): Promise<NetworkIngestionJobItem[]> {
+  const url = `${API_BASE_URL}/api/v1/network/ingestion-jobs?limit=${limit}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load ingestion jobs (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchNetworkRules(): Promise<NetworkRuleDefinition[]> {
+  const url = `${API_BASE_URL}/api/v1/network/rules`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load network detection rules (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function simulateNetworkScenario(scenarioType: string = 'zeek_cloud_upload'): Promise<NetworkIngestResponse> {
+  const url = `${API_BASE_URL}/api/v1/network/simulate`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({ scenario_type: scenarioType }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to simulate network scenario (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function ingestNetworkTelemetry(payload: {
+  sensor_id: string;
+  source_format: string;
+  file_path?: string;
+  raw_content?: string;
+}): Promise<NetworkIngestResponse> {
+  const url = `${API_BASE_URL}/api/v1/network/ingest`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw new Error(errorBody.detail || `Failed to ingest network telemetry (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchThreatIntelIndicators(limit: number = 50): Promise<ThreatIntelIndicatorItem[]> {
+  const url = `${API_BASE_URL}/api/v1/network/threat-intel/indicators?limit=${limit}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load threat intel indicators (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function createThreatIntelIndicator(payload: ThreatIntelIndicatorCreate): Promise<ThreatIntelIndicatorItem> {
+  const url = `${API_BASE_URL}/api/v1/network/threat-intel/indicators`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw new Error(errorBody.detail || `Failed to add threat intel indicator (${response.status})`);
   }
   return response.json();
 }
