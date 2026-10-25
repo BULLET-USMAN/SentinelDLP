@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
+import { DataExfiltrationPage } from './pages/DataExfiltrationPage';
 import { RiskIntelligencePage } from './pages/RiskIntelligencePage';
 import { LiveActivityPage } from './pages/LiveActivityPage';
 import { SensitiveDataPage } from './pages/SensitiveDataPage';
@@ -9,7 +10,7 @@ import { DocumentationPage } from './pages/DocumentationPage';
 import { fetchLiveness } from './services/api';
 
 export const App: React.FC = () => {
-  const [currentTab, setCurrentTab] = useState<'risk' | 'activity' | 'detection' | 'scanner' | 'status' | 'docs'>('risk');
+  const [currentTab, setCurrentTab] = useState<'exfiltration' | 'risk' | 'activity' | 'detection' | 'scanner' | 'status' | 'docs'>('exfiltration');
   const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
 
   useEffect(() => {
@@ -36,7 +37,9 @@ export const App: React.FC = () => {
       />
 
       <main style={{ flex: 1 }}>
-        {currentTab === 'risk' ? (
+        {currentTab === 'exfiltration' ? (
+          <DataExfiltrationPage />
+        ) : currentTab === 'risk' ? (
           <RiskIntelligencePage />
         ) : currentTab === 'activity' ? (
           <LiveActivityPage />
@@ -67,7 +70,7 @@ export const App: React.FC = () => {
           <span>SentinelDLP Platform &copy; 2026. Defensive Cybersecurity Architecture.</span>
         </div>
         <div style={{ display: 'flex', gap: '1rem', fontFamily: 'var(--font-mono)' }}>
-          <span>Phase 5: Threat Risk Scoring & Alerts Active</span>
+          <span>Phase 6: Data Exfiltration & Event Correlation Engine Active</span>
           <span>•</span>
           <span>Zero-Leakage Telemetry</span>
         </div>

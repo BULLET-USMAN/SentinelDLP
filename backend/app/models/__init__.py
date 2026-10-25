@@ -15,6 +15,12 @@ from app.models.risk import (
     RuleMatch,
     SecurityAlert,
 )
+from app.models.exfiltration import (
+    CorrelationRecord,
+    ExfiltrationInvestigation,
+    InvestigationEvidenceLink,
+    TransferEvent,
+)
 
 __all__ = [
     "Base",
@@ -31,4 +37,8 @@ __all__ = [
     "RuleMatch",
     "SecurityAlert",
     "AlertAuditLog",
+    "TransferEvent",
+    "ExfiltrationInvestigation",
+    "CorrelationRecord",
+    "InvestigationEvidenceLink",
 ]

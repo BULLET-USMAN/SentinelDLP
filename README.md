@@ -17,7 +17,7 @@ Designed with modular, defense-in-depth principles, SentinelDLP emphasizes zero-
 
 ---
 
-## 2. Implementation Status: Phase 5 Complete
+## 2. Implementation Status: Phase 6 Complete
 
 - **[COMPLETED] Phase 1 — Project Foundation & Architecture**
   - Robust FastAPI asynchronous backend, SQLAlchemy 2.0 ORM, and Alembic database migrations.
@@ -47,24 +47,25 @@ Designed with modular, defense-in-depth principles, SentinelDLP emphasizes zero-
   - **Deterministic Threat Scoring**: Normalized 0–100 risk score combining primary rule contributions and diminishing secondary rule weights, with soft capping at 100.
   - **Configurable Severity Bands**: `LOW` (0–29), `MEDIUM` (30–59), `HIGH` (60–79), and `CRITICAL` (80–100).
   - **Core Philosophy**: **File sensitivity is context, not proof of malicious activity.** Ordinary modifications to sensitive assets remain in the LOW band unless supported by abnormal velocity, bulk operations, or structural alterations.
-  - **8 Operational Detection Rules**:
-    1. `RULE-SENS-MOD`: Sensitive File Modification (CONFIDENTIAL/RESTRICTED files).
-    2. `RULE-RAPID-MOD`: Rapid File Modification Activity (high frequency of distinct files in 5 minutes).
-    3. `RULE-BULK-RENAME`: Bulk File Renaming (high number of distinct renames; flags volume without asserting speculative conclusions).
-    4. `RULE-SENS-DEL`: Sensitive File Deletion Activity (multiple classified deletions in 15 minutes, preserving historical classification).
-    5. `RULE-REPEAT-CHANGE`: Repeated File Changes (high-churn alteration on a single path).
-    6. `RULE-SENS-VOLUME`: Unusual Sensitive File Activity Volume (clustered operations on sensitive assets in 15 minutes).
-    7. `RULE-EXT-CHANGE`: File Extension Change (tracks prior/new extension, applies bonus points for suspicious extensions like `.locked`, `.crypto`, `.enc`).
-    8. `RULE-COVERAGE-WARN`: Monitoring Coverage Failure (queue overflow or dropped events; treated as a diagnostic visibility warning).
-  - **Distinct Security Concepts**:
-    - *Data Sensitivity*: `PUBLIC`, `INTERNAL`, `CONFIDENTIAL`, `RESTRICTED`.
-    - *Threat Risk*: `0–100` score based on observable behavior in context.
-    - *Evidence Completeness*: `COMPLETE`, `PARTIAL`, `INSUFFICIENT`.
-    - *Detection Confidence*: `LOW`, `MEDIUM`, `HIGH`.
-    - *Alert Severity*: `LOW`, `MEDIUM`, `HIGH`, `CRITICAL`.
-  - **Alert Lifecycle & Sliding-Window Suppression**: Bounded 5-minute suppression window with repeat-counter tracking to prevent alert storms; supports `OPEN` &rarr; `ACKNOWLEDGED` &rarr; `INVESTIGATING` &rarr; `RESOLVED` / `FALSE_POSITIVE` transitions with an immutable audit trail.
-  - **Frontend Risk Intelligence Dashboard**: Dedicated operational view with risk distribution meters, sortable alerts table, and slide-out investigation drawer with analyst triage controls.
-- **[PLANNED] Phase 6 — AI-Assisted Exfiltration Correlation, Incident Reconstruction & Investigation**
+  - **8 Operational Threat Rules**: `RULE-SENS-MOD`, `RULE-RAPID-MOD`, `RULE-BULK-RENAME`, `RULE-SENS-DEL`, `RULE-REPEAT-CHANGE`, `RULE-SENS-VOLUME`, `RULE-EXT-CHANGE`, `RULE-COVERAGE-WARN`.
+  - **Alert Lifecycle & Sliding-Window Suppression**: Bounded 5-minute suppression window with repeat-counter tracking; supports `OPEN` &rarr; `ACKNOWLEDGED` &rarr; `INVESTIGATING` &rarr; `RESOLVED` / `FALSE_POSITIVE` transitions with immutable audit trails.
+- **[COMPLETED] Phase 6 — Advanced Data Exfiltration Detection & Security Event Correlation Engine**
+  - **Bounded Temporal Correlation**: Evaluates telemetry across configurable time windows (1m, 5m, 15m, 30m, 60m), linking sensitive file access, archive staging, and outbound transfer telemetry.
+  - **Archive Activity Staging Recognition**: Recognizes creation, modification, and renaming of archives (`.zip`, `.tar`, `.gz`, `.7z`, `.rar`, etc.) without asserting unsupported causal claims regarding contents.
+  - **Synthetic Transfer Telemetry Interface**: Simulates and ingests outbound transfer evidence explicitly tagged with `LAB_SIMULATED` provenance.
+  - **8 Operational Exfiltration Detection Rules**:
+    1. `EXFIL-001`: High-Volume Sensitive File Activity (&ge;5 sensitive operations within window).
+    2. `EXFIL-002`: Sensitive Activity Followed by Archive Creation (staging detection).
+    3. `EXFIL-003`: Archive Activity Followed by Outbound Transfer Evidence.
+    4. `EXFIL-004`: Unusual Outbound Transfer Volume (&ge;5MB standard, &ge;50MB critical).
+    5. `EXFIL-005`: Unfamiliar Destination (outbound transfer outside authorized baseline allowlist).
+    6. `EXFIL-006`: Repeated Outbound Transfers (&ge;3 iterative or chunked transfers).
+    7. `EXFIL-007`: Multi-Signal Potential Exfiltration (full kill-chain: collection &rarr; staging &rarr; transfer).
+    8. `EXFIL-008`: Insufficient Evidence (flags isolated signals with diagnostic caution and low confidence).
+  - **Strict Evidence Provenance Taxonomy**: `OBSERVED`, `IMPORTED`, `LAB_SIMULATED`, `INFERRED`.
+  - **Forensic Relationship Modesty**: Labels connections as `temporal`, `circumstantial`, or `verified`.
+  - **Frontend Exfiltration Dashboard**: Interactive SOC console with KPI metrics, filterable investigations, slide-out forensic timeline drawer, and lab telemetry generator.
+- **[PLANNED] Phase 7 — Automated Containment & Defensive Security Response Engine**
 
 ---
 
@@ -189,6 +190,21 @@ Filesystem observer telemetry indicates file creation, modification, deletion, a
 | `PATCH` | `/api/v1/alerts/{alert_id}/status` | Update alert triage lifecycle status with analyst commentary |
 | `GET` | `/api/v1/alerts/statistics` | SOC triage metrics (counts by status: OPEN, ACKNOWLEDGED, INVESTIGATING, RESOLVED, FALSE_POSITIVE) |
 
+### Data Exfiltration & Event Correlation (Phase 6)
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/v1/exfiltration/investigations` | List correlated exfiltration investigations with multi-parameter filtering |
+| `GET` | `/api/v1/exfiltration/investigations/{id}` | Detailed investigation view including matched rules and evidence links |
+| `GET` | `/api/v1/exfiltration/investigations/{id}/timeline` | Chronological forensic timeline with provenance tags and relationship taxonomy |
+| `GET` | `/api/v1/exfiltration/investigations/{id}/evidence` | List granular evidence items linked to an investigation |
+| `PATCH` | `/api/v1/exfiltration/investigations/{id}/status` | Update triage state (OPEN, ACKNOWLEDGED, INVESTIGATING, RESOLVED, etc.) and audit notes |
+| `GET` | `/api/v1/exfiltration/statistics` | High-level metrics (total cases, open cases, critical alerts, simulated transfer counts) |
+| `GET` | `/api/v1/exfiltration/rules` | Catalog of all 8 exfiltration detection rules with weights and descriptions |
+| `POST` | `/api/v1/exfiltration/correlate` | Trigger bounded temporal correlation pass across recent telemetry |
+| `POST` | `/api/v1/exfiltration/transfers/import` | Batch ingest outbound transfer telemetry (LAB_SIMULATED / external) |
+| `POST` | `/api/v1/exfiltration/transfers/simulate` | Generate synthetic lab exfiltration scenarios for testing & demonstration |
+| `GET` | `/api/v1/exfiltration/transfers` | List recorded outbound transfer telemetry events |
+
 ---
 
 ## 6. Database Schema & Migrations
@@ -200,6 +216,7 @@ Database schema management is handled via Alembic migrations:
 3. `0003_classification_and_findings.py`: `file_classifications` and `detection_findings` tables for Phase 3 sensitive data discovery.
 4. `0004_file_activity_monitoring.py`: `monitoring_configurations`, `file_activity_events`, and `monitoring_sessions` tables for Phase 4 real-time tracking.
 5. `0005_risk_scoring_and_alerts.py`: `risk_assessments`, `rule_matches`, `security_alerts`, and `alert_audit_logs` tables for Phase 5 risk scoring and SOC triage.
+6. `0006_exfiltration_correlation.py`: `transfer_events`, `exfiltration_investigations`, `correlation_records`, and `investigation_evidence_links` tables for Phase 6 multi-signal correlation.
 
 ---
 
@@ -243,7 +260,7 @@ npm.cmd run dev
 
 SentinelDLP maintains a comprehensive automated test suite spanning unit tests, integration tests, boundary verifications, and cryptographic vectors.
 
-Run the full pytest suite (78 tests across Phase 1, Phase 2, Phase 3, Phase 4, and Phase 5):
+Run the full pytest suite (95 tests across Phases 1 through 6):
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -v backend\tests
@@ -254,6 +271,7 @@ Run the full pytest suite (78 tests across Phase 1, Phase 2, Phase 3, Phase 4, a
 - **Phase 3 Detection Engine**: Luhn algorithm validation, Shannon entropy calculation, high-confidence secret masking, PDF/DOCX content extraction, and policy classification.
 - **Phase 4 Monitoring**: Watchdog event normalization, path traversal blocking, 0.4s sliding-window debouncing, bounded queue saturation & overflow tracking, live session lifecycle, and SSE event streaming.
 - **Phase 5 Risk Engine**: 0–100 score normalization, diminishing returns formula, 8 security detection rules evaluated individually and in combinations, alert deduplication and 300s sliding-window suppression, analyst triage lifecycle transitions, audit logging, and REST API validation.
+- **Phase 6 Exfiltration Engine**: Bounded temporal correlation across 1m, 5m, 15m, 30m, and 60m windows, 8 deterministic exfiltration rules (EXFIL-001 through EXFIL-008), multi-signal chain reconstruction, strict provenance tagging (OBSERVED, IMPORTED, LAB_SIMULATED, INFERRED), forensic relationship taxonomy (temporal, circumstantial, verified), chronological timeline synthesis, and REST API integration.
 
 ---
 
@@ -264,4 +282,6 @@ Run the full pytest suite (78 tests across Phase 1, Phase 2, Phase 3, Phase 4, a
 - **[x] Phase 3: Advanced Sensitive Data Detection & Classification Engine**
 - **[x] Phase 4: Real-Time File Activity Monitoring & Security Event Collection**
 - **[x] Phase 5: Intelligent Threat Risk Scoring, Detection Rules & Security Alert Engine**
+- **[x] Phase 6: Advanced Data Exfiltration Detection & Security Event Correlation Engine**
+- **[ ] Phase 7: Automated Containment & Defensive Security Response Engine**
 - **[ ] Phase 6: AI-Assisted Exfiltration Correlation, Incident Reconstruction & Response**

@@ -13,6 +13,39 @@ export const DocumentationPage: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        {/* Phase 6 Implemented */}
+        <div style={{
+          backgroundColor: 'var(--bg-card)',
+          border: '1px solid rgba(6, 182, 212, 0.4)',
+          borderRadius: '8px',
+          padding: '1.5rem',
+        }}>
+          <h2 style={{ fontSize: '1.15rem', color: '#06b6d4', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>✓</span> Phase 6 Active: Advanced Data Exfiltration Detection & Security Event Correlation Engine
+          </h2>
+          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Bounded Temporal Correlation:</strong>
+              Correlates multi-source signals across configurable time windows (1m, 5m, 15m, 30m, 60m), linking sensitive file access, archive staging, and outbound transfer telemetry.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• 8 Operational Exfiltration Detection Rules:</strong>
+              EXFIL-001 (High-Volume Sensitive Activity), EXFIL-002 (Sensitive Access &rarr; Archive Staging), EXFIL-003 (Archive &rarr; Outbound Transfer), EXFIL-004 (Unusual Outbound Volume), EXFIL-005 (Unfamiliar Destination), EXFIL-006 (Repeated Chunked Transfers), EXFIL-007 (Complete Multi-Signal Chain), EXFIL-008 (Insufficient Evidence / Coverage Warning).
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Strict Evidence Provenance & Forensic Ethics:</strong>
+              Explicitly categorizes and tags evidence sources: OBSERVED (direct filesystem monitor), IMPORTED (perimeter logs), LAB_SIMULATED (synthetic testing fixtures), and INFERRED (correlation engine derived).
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Causal Modesty & Relationship Taxonomy:</strong>
+              Maintains strict forensic distinction between temporal proximity, circumstantial overlap, and cryptographically verified links without unsupported causal assumptions.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Chronological Investigation Timelines:</strong>
+              Interactive forensic incident drawer presenting an ordered chronological stream of file activity, archive creation, and outbound transfer telemetry.
+            </li>
+          </ul>
+        </div>
         {/* Phase 5 Implemented */}
         <div style={{
           backgroundColor: 'var(--bg-card)',

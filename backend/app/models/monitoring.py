@@ -113,6 +113,18 @@ class FileActivityEvent(Base):
         Index("ix_activity_events_type_status", "event_type", "status"),
     )
 
+    @property
+    def file_path(self) -> str:
+        return self.relative_path
+
+    @property
+    def activity_type(self) -> str:
+        return self.event_type
+
+    @property
+    def timestamp(self) -> datetime:
+        return self.occurred_at
+
     def __repr__(self) -> str:
         return (
             f"<FileActivityEvent(id='{self.id}', type='{self.event_type}', "

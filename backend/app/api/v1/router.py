@@ -4,6 +4,7 @@ from fastapi import APIRouter
 from app.api.v1.endpoints import (
     alerts,
     detection,
+    exfiltration,
     health,
     monitoring,
     placeholder_detection,
@@ -46,6 +47,12 @@ api_v1_router.include_router(
 api_v1_router.include_router(
     alerts.router,
     tags=["Security Alerts"],
+)
+
+# Phase 6: Data Exfiltration & Event Correlation routes
+api_v1_router.include_router(
+    exfiltration.router,
+    tags=["Data Exfiltration Correlation"],
 )
 
 # Placeholder detection routes (Phase 1 legacy compatibility)

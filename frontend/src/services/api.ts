@@ -28,6 +28,14 @@ import {
   RiskStatistics,
   SecurityAlertDetail,
 } from '../types/risk';
+import {
+  ExfiltrationInvestigationItem,
+  ExfiltrationRuleDefinition,
+  ExfiltrationStatistics,
+  ExfiltrationTimelineItem,
+  InvestigationStatus,
+  TransferEventItem,
+} from '../types/exfiltration';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
@@ -462,6 +470,136 @@ export async function fetchAlertStatistics(): Promise<AlertStatistics> {
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load alert statistics (${response.status})`);
+  }
+  return response.json();
+}
+
+/* =========================================================================
+ * PHASE 6: Data Exfiltration & Event Correlation APIs
+ * ========================================================================= */
+
+export async function fetchExfiltrationStatistics(): Promise<ExfiltrationStatistics> {
+  const url = `${API_BASE_URL}/api/v1/exfiltration/statistics`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load exfiltration statistics (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchExfiltrationInvestigations(params?: {
+  status?: string;
+  severity?: string;
+  confidence?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<ExfiltrationInvestigationItem[]> {
+  const query = new URLSearchParams();
+  if (params?.status) query.append('status', params.status);
+  if (params?.severity) query.append('severity', params.severity);
+  if (params?.confidence) query.append('confidence', params.confidence);
+  if (params?.limit) query.append('limit', params.limit.toString());
+  if (params?.offset !== undefined) query.append('offset', params.offset.toString());
+
+  const url = `${API_BASE_URL}/api/v1/exfiltration/investigations?${query.toString()}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load exfiltration investigations (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchExfiltrationInvestigationDetail(id: string): Promise<ExfiltrationInvestigationItem> {
+  const url = `${API_BASE_URL}/api/v1/exfiltration/investigations/${id}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load investigation details (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchExfiltrationTimeline(id: string): Promise<ExfiltrationTimelineItem[]> {
+  const url = `${API_BASE_URL}/api/v1/exfiltration/investigations/${id}/timeline`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load investigation timeline (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function updateExfiltrationInvestigationStatus(
+  id: string,
+  status: InvestigationStatus,
+  assignedAnalyst?: string,
+  notes?: string,
+): Promise<ExfiltrationInvestigationItem> {
+  const url = `${API_BASE_URL}/api/v1/exfiltration/investigations/${id}/status`;
+  const response = await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({
+      status,
+      assigned_analyst: assignedAnalyst || null,
+      notes: notes || null,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw new Error(errorBody.detail || `Failed to update investigation (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchExfiltrationRules(): Promise<ExfiltrationRuleDefinition[]> {
+  const url = `${API_BASE_URL}/api/v1/exfiltration/rules`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load exfiltration rules (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function triggerCorrelationRun(windowMinutes: number = 15): Promise<any> {
+  const url = `${API_BASE_URL}/api/v1/exfiltration/correlate`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({ window_minutes: windowMinutes }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to trigger correlation pass (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function simulateTransferScenario(scenarioType: string = 'cloud_exfiltration'): Promise<TransferEventItem[]> {
+  const url = `${API_BASE_URL}/api/v1/exfiltration/transfers/simulate?scenario_type=${scenarioType}`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to simulate scenario (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchTransferEvents(limit: number = 50): Promise<TransferEventItem[]> {
+  const url = `${API_BASE_URL}/api/v1/exfiltration/transfers?limit=${limit}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch transfers (${response.status})`);
   }
   return response.json();
 }
