@@ -56,6 +56,16 @@ import {
   DashboardSearchResponse,
 } from '../types/dashboard';
 
+import {
+  GlobalDetectionMetrics,
+  ScenarioDefinition,
+  ScenarioRunRequest,
+  SimulationReportResponse,
+  SimulationResultResponse,
+  SimulationRunResponse,
+  SubsystemCoverageItem,
+} from '../types/simulation';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 export async function fetchLiveness(): Promise<LivenessResponse> {
@@ -969,6 +979,116 @@ export async function fetchAIConversationDetail(
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load AI conversation details (${response.status})`);
+  }
+  return response.json();
+}
+
+// ============================================================================
+// Phase 10: Cyberattack Simulation & Detection Validation Laboratory
+// ============================================================================
+
+export async function fetchSimulationScenarios(): Promise<ScenarioDefinition[]> {
+  const url = `${API_BASE_URL}/api/v1/simulation/scenarios`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load simulation scenarios (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchSimulationScenario(scenarioId: string): Promise<ScenarioDefinition> {
+  const url = `${API_BASE_URL}/api/v1/simulation/scenarios/${scenarioId}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load scenario ${scenarioId} (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function triggerSimulationRun(request: ScenarioRunRequest): Promise<SimulationRunResponse> {
+  const url = `${API_BASE_URL}/api/v1/simulation/runs`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw new Error(errorBody.detail || `Failed to start simulation run (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchSimulationRuns(
+  limit: number = 20,
+  offset: number = 0,
+  scenarioId?: string,
+): Promise<SimulationRunResponse[]> {
+  let url = `${API_BASE_URL}/api/v1/simulation/runs?limit=${limit}&offset=${offset}`;
+  if (scenarioId) {
+    url += `&scenario_id=${encodeURIComponent(scenarioId)}`;
+  }
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load simulation runs (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchSimulationRun(runId: string): Promise<SimulationRunResponse> {
+  const url = `${API_BASE_URL}/api/v1/simulation/runs/${runId}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load simulation run details (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function cancelSimulationRun(runId: string): Promise<{ cancelled: boolean; run_id: string }> {
+  const url = `${API_BASE_URL}/api/v1/simulation/runs/${runId}/cancel`;
+  const response = await fetch(url, { method: 'POST' });
+  if (!response.ok) {
+    throw new Error(`Failed to cancel simulation run (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchSimulationResult(runId: string): Promise<SimulationResultResponse> {
+  const url = `${API_BASE_URL}/api/v1/simulation/runs/${runId}/results`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load simulation results (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchSimulationMetrics(): Promise<GlobalDetectionMetrics> {
+  const url = `${API_BASE_URL}/api/v1/simulation/metrics`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load simulation global metrics (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchSubsystemCoverage(): Promise<SubsystemCoverageItem[]> {
+  const url = `${API_BASE_URL}/api/v1/simulation/coverage`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load subsystem coverage matrix (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchSimulationReport(runId: string): Promise<SimulationReportResponse> {
+  const url = `${API_BASE_URL}/api/v1/simulation/reports/${runId}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load simulation report (${response.status})`);
   }
   return response.json();
 }

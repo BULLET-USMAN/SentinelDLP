@@ -6,6 +6,7 @@ import {
   Bot,
   ChevronLeft,
   ChevronRight,
+  FlaskConical,
   Globe,
   HardDrive,
   HeartPulse,
@@ -30,6 +31,7 @@ export type NavigationTab =
   | 'alerts'
   | 'investigations'
   | 'ai-analyst'
+  | 'security-lab'
   | 'health'
   | 'settings'
   | 'docs';
@@ -90,6 +92,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { id: 'alerts', label: 'Alerts Console', icon: ShieldAlert },
         { id: 'investigations', label: 'Investigation Workspace', icon: Search },
         { id: 'ai-analyst', label: 'AI SOC Analyst', icon: Bot, badge: 'Phase 9' },
+      ],
+    },
+    {
+      label: 'VALIDATION & TESTING',
+      items: [
+        { id: 'security-lab', label: 'Security Testing Lab', icon: FlaskConical, badge: 'Phase 10' },
       ],
     },
     {

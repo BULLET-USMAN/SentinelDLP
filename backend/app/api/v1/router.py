@@ -13,9 +13,16 @@ from app.api.v1.endpoints import (
     placeholder_detection,
     risk,
     scans,
+    simulation,
 )
 
 api_v1_router = APIRouter()
+
+# Phase 10: Cyberattack Simulation & Detection Validation Laboratory routes
+api_v1_router.include_router(
+    simulation.router,
+    tags=["Simulation Laboratory"],
+)
 
 # Phase 9: AI-Powered SOC Analyst & Security Investigation routes
 api_v1_router.include_router(

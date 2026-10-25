@@ -35,6 +35,11 @@ from app.models.ai import (
     AIConversationMessage,
     AIToolAuditEvent,
 )
+from app.models.simulation import (
+    SimulationRun,
+    SimulationResult,
+    SimulationReport,
+)
 
 __all__ = [
     "Base",
@@ -65,4 +70,7 @@ __all__ = [
     "AIConversationSession",
     "AIConversationMessage",
     "AIToolAuditEvent",
+    "SimulationRun",
+    "SimulationResult",
+    "SimulationReport",
 ]

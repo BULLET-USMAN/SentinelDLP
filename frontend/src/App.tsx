@@ -7,6 +7,7 @@ import { OverviewPage } from './pages/OverviewPage';
 import { AlertsConsolePage } from './pages/AlertsConsolePage';
 import { InvestigationWorkspacePage } from './pages/InvestigationWorkspacePage';
 import { AISocAnalystPage } from './pages/AISocAnalystPage';
+import { SecurityLabPage } from './pages/SecurityLabPage';
 import { SystemHealthPage } from './pages/SystemHealthPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { NetworkIntelligencePage } from './pages/NetworkIntelligencePage';
@@ -93,6 +94,9 @@ export const App: React.FC = () => {
         )}
         {currentTab === 'ai-analyst' && (
           <AISocAnalystPage />
+        )}
+        {currentTab === 'security-lab' && (
+          <SecurityLabPage />
         )}
         {currentTab === 'network' && (
           <NetworkIntelligencePage />

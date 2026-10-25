@@ -13,6 +13,36 @@ export const DocumentationPage: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        {/* Phase 10 Implemented */}
+        <div style={{
+          backgroundColor: 'var(--bg-card)',
+          border: '1px solid rgba(16, 185, 129, 0.4)',
+          borderRadius: '8px',
+          padding: '1.5rem',
+        }}>
+          <h2 style={{ fontSize: '1.15rem', color: '#10b981', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>✓</span> Phase 10 Active: Advanced Cyberattack Simulation, Detection Validation & Security Testing Laboratory
+          </h2>
+          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Predefined Security Testing Library (11 Scenarios):</strong>
+              Comprehensive scenario catalog covering benign baseline verification, sensitive PII/credential discovery, rapid burst modifications, bulk ransomware-like renaming heuristics, staging ZIP archives, network traffic anomalies, full multi-signal exfiltration chains, negative controls, sensor coverage diagnostics, idempotency tracking, and AI SOC Analyst evaluation.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Isolated Synthetic Data Generator & Strict Containment:</strong>
+              Generates safe, fictional test artifacts (Pakistani CNIC, Luhn-valid payment cards, synthetic API tokens, safe ZIP archives) strictly confined to <code>sample_data/simulation_lab/</code> with automated sandbox purging and zero live user data risks.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Detection Accuracy & Confusion Matrix Analytics:</strong>
+              Statistical evaluation engine computing True Positives, False Positives, True Negatives, False Negatives, Precision, Recall, F1 Score, False Positive Rate (FPR), and Detection Latency (ms).
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Subsystem Coverage Matrix & Markdown Audit Reports:</strong>
+              Granular mapping across all 6 platform subsystems (Scanner, Monitoring, Risk Engine, Exfiltration, Network, AI Analyst) and automated generation of downloadable Markdown audit reports.
+            </li>
+          </ul>
+        </div>
+
         {/* Phase 9 Implemented */}
         <div style={{
           backgroundColor: 'var(--bg-card)',
