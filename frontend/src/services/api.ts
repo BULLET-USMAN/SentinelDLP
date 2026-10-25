@@ -51,6 +51,10 @@ import {
   TopDestinationItem,
   TrafficSummaryResponse,
 } from '../types/network';
+import {
+  DashboardOverviewResponse,
+  DashboardSearchResponse,
+} from '../types/dashboard';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
@@ -795,6 +799,28 @@ export async function createThreatIntelIndicator(payload: ThreatIntelIndicatorCr
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
     throw new Error(errorBody.detail || `Failed to add threat intel indicator (${response.status})`);
+  }
+  return response.json();
+}
+
+// =========================================================================
+// Phase 8 Centralized SOC Dashboard & Unified Search API Calls
+// =========================================================================
+
+export async function fetchDashboardOverview(): Promise<DashboardOverviewResponse> {
+  const url = `${API_BASE_URL}/api/v1/dashboard/overview`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load SOC dashboard overview (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchDashboardSearch(query: string, limit: number = 15): Promise<DashboardSearchResponse> {
+  const url = `${API_BASE_URL}/api/v1/dashboard/search?q=${encodeURIComponent(query)}&limit=${limit}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to perform global search (${response.status})`);
   }
   return response.json();
 }

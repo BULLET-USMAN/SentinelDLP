@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 from app.api.v1.endpoints import (
     alerts,
+    dashboard,
     detection,
     exfiltration,
     health,
@@ -14,6 +15,12 @@ from app.api.v1.endpoints import (
 )
 
 api_v1_router = APIRouter()
+
+# Phase 8: Centralized SOC Dashboard & Unified Search routes
+api_v1_router.include_router(
+    dashboard.router,
+    tags=["SOC Dashboard & Intelligence"],
+)
 
 # Health and readiness routes
 api_v1_router.include_router(

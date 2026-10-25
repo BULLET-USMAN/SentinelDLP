@@ -13,6 +13,40 @@ export const DocumentationPage: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        {/* Phase 8 Implemented */}
+        <div style={{
+          backgroundColor: 'var(--bg-card)',
+          border: '1px solid rgba(16, 185, 129, 0.4)',
+          borderRadius: '8px',
+          padding: '1.5rem',
+        }}>
+          <h2 style={{ fontSize: '1.15rem', color: '#10b981', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>✓</span> Phase 8 Active: Enterprise Security Operations Center Dashboard & Unified Security Intelligence
+          </h2>
+          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Unified SOC Overview & Metrics Aggregation:</strong>
+              Single lightweight backend endpoint (<code>/api/v1/dashboard/overview</code>) delivering executive KPI cards, 24h risk trend charts, recent multi-source activity, capability matrix, and priority triage queue.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Unified Cross-Entity Metadata Search:</strong>
+              Global Search Modal accessible via <code>Ctrl+K</code> or <code>/</code>, with debounced multi-source query across alerts, investigations, scanned files, threat indicators, and detection rules (<code>/api/v1/dashboard/search</code>).
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Dedicated Security Operations Consoles:</strong>
+              Centralized Alert Console with status transitions (<code>OPEN</code> &rarr; <code>ACKNOWLEDGED</code> &rarr; <code>INVESTIGATING</code> &rarr; <code>RESOLVED</code> &rarr; <code>FALSE_POSITIVE</code>) and immutable audit logging; plus dedicated Investigation Workspace with multi-stage forensic timelines.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• System & Sensor Health Observability:</strong>
+              Subsystem capability matrix tracking health, telemetry freshness, PostgreSQL connection latency, and container isolation boundary disclosures.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Enterprise Navigation Architecture:</strong>
+              Collapsible sidebar navigation grouping capabilities into Overview, Data Protection, Threat Intelligence, Security Operations, and System.
+            </li>
+          </ul>
+        </div>
+
         {/* Phase 7 Implemented */}
         <div style={{
           backgroundColor: 'var(--bg-card)',
