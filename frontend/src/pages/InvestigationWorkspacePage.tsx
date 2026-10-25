@@ -12,12 +12,18 @@ import {
   User,
   Sparkles,
   Info,
+  Bot,
+  ThumbsUp,
+  ThumbsDown,
 } from 'lucide-react';
 import {
   fetchExfiltrationInvestigations,
   fetchExfiltrationInvestigationDetail,
   fetchExfiltrationTimeline,
   updateExfiltrationInvestigationStatus,
+  analyzeInvestigation,
+  fetchInvestigationReports,
+  submitReportFeedback,
 } from '../services/api';
 import {
   ExfiltrationInvestigationItem,
@@ -25,6 +31,10 @@ import {
   InvestigationStatus,
   EvidenceProvenance,
 } from '../types/exfiltration';
+import {
+  AIInvestigationReportResponse,
+  AnalystReviewStatus,
+} from '../types/ai';
 
 interface InvestigationWorkspacePageProps {
   initialInvestigationId?: string | null;
@@ -55,6 +65,12 @@ export const InvestigationWorkspacePage: React.FC<InvestigationWorkspacePageProp
   const [caseNotes, setCaseNotes] = useState<string>('');
   const [updatingStatus, setUpdatingStatus] = useState<boolean>(false);
   const [updateFeedback, setUpdateFeedback] = useState<{ text: string; isError?: boolean } | null>(null);
+
+  // AI Analysis State
+  const [aiReport, setAiReport] = useState<AIInvestigationReportResponse | null>(null);
+  const [loadingAiReport, setLoadingAiReport] = useState<boolean>(false);
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState<boolean>(false);
+  const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
 
   // Sync initial ID
   useEffect(() => {
@@ -101,15 +117,18 @@ export const InvestigationWorkspacePage: React.FC<InvestigationWorkspacePageProp
       try {
         setLoadingDetail(true);
         setUpdateFeedback(null);
-        const [detRes, timeRes] = await Promise.all([
+        setFeedbackMsg(null);
+        const [detRes, timeRes, aiReports] = await Promise.all([
           fetchExfiltrationInvestigationDetail(selectedId),
           fetchExfiltrationTimeline(selectedId),
+          fetchInvestigationReports(selectedId).catch(() => []),
         ]);
         if (active) {
           setDetail(detRes);
           setTimeline(timeRes || []);
           setAnalystName(detRes.assigned_analyst || 'soc_investigator');
           setCaseNotes(detRes.investigation_notes || '');
+          setAiReport(aiReports && aiReports.length > 0 ? aiReports[0] : null);
         }
       } catch (err: any) {
         if (active) {
@@ -125,6 +144,35 @@ export const InvestigationWorkspacePage: React.FC<InvestigationWorkspacePageProp
       active = false;
     };
   }, [selectedId]);
+
+  const handleGenerateAiReport = async () => {
+    if (!selectedId) return;
+    try {
+      setLoadingAiReport(true);
+      setFeedbackMsg(null);
+      const report = await analyzeInvestigation(selectedId, undefined, true);
+      setAiReport(report);
+      setFeedbackMsg('AI security analysis generated successfully.');
+    } catch (err: any) {
+      setFeedbackMsg(`AI Analysis error: ${err.message || 'Failed to generate report'}`);
+    } finally {
+      setLoadingAiReport(false);
+    }
+  };
+
+  const handleFeedback = async (reviewStatus: AnalystReviewStatus) => {
+    if (!aiReport) return;
+    try {
+      setFeedbackSubmitting(true);
+      const updated = await submitReportFeedback(aiReport.id, reviewStatus, undefined, analystName);
+      setAiReport(updated);
+      setFeedbackMsg(`Report marked as ${reviewStatus}.`);
+    } catch (err: any) {
+      setFeedbackMsg(`Feedback submission failed: ${err.message}`);
+    } finally {
+      setFeedbackSubmitting(false);
+    }
+  };
 
   const handleStatusUpdate = async (newStatus: InvestigationStatus) => {
     if (!selectedId) return;
@@ -424,6 +472,220 @@ export const InvestigationWorkspacePage: React.FC<InvestigationWorkspacePageProp
                 )}
               </div>
 
+              {/* AI ANALYSIS SECTION (Phase 9) */}
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                      <Bot className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                        AI Security Investigation Analysis
+                        <span className="text-[10px] px-2 py-0.5 rounded font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                          {aiReport ? aiReport.model_id : 'LOCAL AI'}
+                        </span>
+                      </h3>
+                      <p className="text-[11px] text-slate-400">
+                        Evidence-grounded qualitative analysis, ATT&CK alignment, and human analyst validation.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleGenerateAiReport}
+                    disabled={loadingAiReport}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition-colors disabled:opacity-50"
+                  >
+                    <Sparkles className={`w-3.5 h-3.5 ${loadingAiReport ? 'animate-spin' : ''}`} />
+                    {loadingAiReport ? 'Analyzing Evidence...' : aiReport ? 'Re-Analyze Case' : 'Generate AI Report'}
+                  </button>
+                </div>
+
+                {feedbackMsg && (
+                  <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-emerald-400 font-mono">
+                    {feedbackMsg}
+                  </div>
+                )}
+
+                {loadingAiReport ? (
+                  <div className="py-12 text-center text-slate-400 space-y-2">
+                    <RefreshCw className="w-6 h-6 animate-spin mx-auto text-emerald-400" />
+                    <p className="text-xs">Synthesizing evidence and cross-referencing MITRE ATT&CK techniques...</p>
+                  </div>
+                ) : !aiReport ? (
+                  <div className="py-8 text-center text-slate-500 text-xs space-y-2">
+                    <p>No AI investigation report generated for this case yet.</p>
+                    <button
+                      onClick={handleGenerateAiReport}
+                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs transition-colors"
+                    >
+                      Run Initial AI Analysis
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4 text-xs">
+                    {/* A. Executive Summary & Assessment */}
+                    <div className="p-3.5 rounded-lg bg-slate-950 border border-slate-800 space-y-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-900 pb-2">
+                        <span className="font-semibold text-slate-300 uppercase tracking-wider text-[11px]">
+                          Executive Summary & Assessment
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
+                            Confidence: {aiReport.confidence_assessment}
+                          </span>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
+                            Completeness: {aiReport.evidence_completeness}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-slate-200 leading-relaxed font-medium">{aiReport.executive_summary}</p>
+                      <p className="text-slate-400 leading-relaxed pt-1 text-[11px]">{aiReport.assessment}</p>
+                    </div>
+
+                    {/* B. Observed Facts */}
+                    {aiReport.observed_facts && aiReport.observed_facts.length > 0 && (
+                      <div className="space-y-2">
+                        <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+                          Verified Supporting Evidence ({aiReport.observed_facts.length})
+                        </span>
+                        <div className="space-y-1.5">
+                          {aiReport.observed_facts.map((fact, idx) => (
+                            <div
+                              key={idx}
+                              className="p-2.5 rounded-lg bg-slate-950 border border-slate-800/80 flex items-start justify-between gap-2 text-xs"
+                            >
+                              <div className="space-y-0.5">
+                                <span className="text-slate-200">{fact.fact}</span>
+                                {fact.record_id && (
+                                  <div className="text-[10px] text-slate-500 font-mono">
+                                    Record ID: {fact.record_id}
+                                  </div>
+                                )}
+                              </div>
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-400">
+                                {fact.provenance}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* C. Explanations & Missing Evidence */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-1.5">
+                        <span className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider block">
+                          Plausible Explanations
+                        </span>
+                        <ul className="space-y-1 text-slate-400 text-[11px] list-disc list-inside">
+                          {aiReport.possible_explanations.map((exp, idx) => (
+                            <li key={idx}>{exp}</li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-1.5">
+                        <span className="text-[11px] font-semibold text-amber-400 uppercase tracking-wider block">
+                          Missing or Unverified Telemetry
+                        </span>
+                        <ul className="space-y-1 text-slate-400 text-[11px] list-disc list-inside">
+                          {aiReport.missing_evidence.map((miss, idx) => (
+                            <li key={idx}>{miss}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* D. MITRE ATT&CK Mapping */}
+                    {aiReport.mitre_attack_mappings && aiReport.mitre_attack_mappings.length > 0 && (
+                      <div className="space-y-2">
+                        <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+                          MITRE ATT&CK Mappings ({aiReport.mitre_attack_mappings.length})
+                        </span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {aiReport.mitre_attack_mappings.map((m, idx) => (
+                            <div
+                              key={idx}
+                              className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-xs space-y-1"
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-mono font-bold text-indigo-400">{m.technique_id}</span>
+                                <span className="text-[10px] text-slate-500 font-mono">{m.tactic}</span>
+                              </div>
+                              <div className="font-semibold text-slate-200">{m.technique_name}</div>
+                              <p className="text-[11px] text-slate-400 leading-tight">{m.justification}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* E. Recommended Actions */}
+                    {aiReport.recommended_actions && aiReport.recommended_actions.length > 0 && (
+                      <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-1.5">
+                        <span className="text-[11px] font-semibold text-cyan-400 uppercase tracking-wider block">
+                          Defensive Investigation Recommendations
+                        </span>
+                        <ul className="space-y-1 text-slate-300 text-[11px] list-disc list-inside">
+                          {aiReport.recommended_actions.map((act, idx) => (
+                            <li key={idx}>{act}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* F. Analyst Feedback & Validation Bar */}
+                    <div className="p-3.5 rounded-lg bg-slate-950 border border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] text-slate-400">Analyst Review:</span>
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            aiReport.analyst_review_status === 'USEFUL'
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                              : aiReport.analyst_review_status === 'INCORRECT'
+                              ? 'bg-red-500/10 text-red-400 border border-red-500/30'
+                              : 'bg-slate-800 text-slate-400'
+                          }`}
+                        >
+                          {aiReport.analyst_review_status}
+                        </span>
+                        {aiReport.reviewed_by && (
+                          <span className="text-[10px] text-slate-500">by {aiReport.reviewed_by}</span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleFeedback('USEFUL')}
+                          disabled={feedbackSubmitting}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs border border-emerald-500/30 transition-colors"
+                        >
+                          <ThumbsUp className="w-3.5 h-3.5" />
+                          Mark Useful
+                        </button>
+                        <button
+                          onClick={() => handleFeedback('INCORRECT')}
+                          disabled={feedbackSubmitting}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs border border-red-500/30 transition-colors"
+                        >
+                          <ThumbsDown className="w-3.5 h-3.5" />
+                          Mark Incorrect
+                        </button>
+                        <button
+                          onClick={() => handleFeedback('NEEDS_REVIEW')}
+                          disabled={feedbackSubmitting}
+                          className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition-colors"
+                        >
+                          Needs Review
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Forensic Timeline */}
               <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -485,6 +747,220 @@ export const InvestigationWorkspacePage: React.FC<InvestigationWorkspacePageProp
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+              </div>
+
+              {/* AI ANALYSIS SECTION (Phase 9) */}
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                      <Bot className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                        AI Security Investigation Analysis
+                        <span className="text-[10px] px-2 py-0.5 rounded font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                          {aiReport ? aiReport.model_id : 'LOCAL AI'}
+                        </span>
+                      </h3>
+                      <p className="text-[11px] text-slate-400">
+                        Evidence-grounded qualitative analysis, ATT&CK alignment, and human analyst validation.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleGenerateAiReport}
+                    disabled={loadingAiReport}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition-colors disabled:opacity-50"
+                  >
+                    <Sparkles className={`w-3.5 h-3.5 ${loadingAiReport ? 'animate-spin' : ''}`} />
+                    {loadingAiReport ? 'Analyzing Evidence...' : aiReport ? 'Re-Analyze Case' : 'Generate AI Report'}
+                  </button>
+                </div>
+
+                {feedbackMsg && (
+                  <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-emerald-400 font-mono">
+                    {feedbackMsg}
+                  </div>
+                )}
+
+                {loadingAiReport ? (
+                  <div className="py-12 text-center text-slate-400 space-y-2">
+                    <RefreshCw className="w-6 h-6 animate-spin mx-auto text-emerald-400" />
+                    <p className="text-xs">Synthesizing evidence and cross-referencing MITRE ATT&CK techniques...</p>
+                  </div>
+                ) : !aiReport ? (
+                  <div className="py-8 text-center text-slate-500 text-xs space-y-2">
+                    <p>No AI investigation report generated for this case yet.</p>
+                    <button
+                      onClick={handleGenerateAiReport}
+                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs transition-colors"
+                    >
+                      Run Initial AI Analysis
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4 text-xs">
+                    {/* A. Executive Summary & Assessment */}
+                    <div className="p-3.5 rounded-lg bg-slate-950 border border-slate-800 space-y-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-900 pb-2">
+                        <span className="font-semibold text-slate-300 uppercase tracking-wider text-[11px]">
+                          Executive Summary & Assessment
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
+                            Confidence: {aiReport.confidence_assessment}
+                          </span>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
+                            Completeness: {aiReport.evidence_completeness}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-slate-200 leading-relaxed font-medium">{aiReport.executive_summary}</p>
+                      <p className="text-slate-400 leading-relaxed pt-1 text-[11px]">{aiReport.assessment}</p>
+                    </div>
+
+                    {/* B. Observed Facts */}
+                    {aiReport.observed_facts && aiReport.observed_facts.length > 0 && (
+                      <div className="space-y-2">
+                        <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+                          Verified Supporting Evidence ({aiReport.observed_facts.length})
+                        </span>
+                        <div className="space-y-1.5">
+                          {aiReport.observed_facts.map((fact, idx) => (
+                            <div
+                              key={idx}
+                              className="p-2.5 rounded-lg bg-slate-950 border border-slate-800/80 flex items-start justify-between gap-2 text-xs"
+                            >
+                              <div className="space-y-0.5">
+                                <span className="text-slate-200">{fact.fact}</span>
+                                {fact.record_id && (
+                                  <div className="text-[10px] text-slate-500 font-mono">
+                                    Record ID: {fact.record_id}
+                                  </div>
+                                )}
+                              </div>
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-400">
+                                {fact.provenance}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* C. Explanations & Missing Evidence */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-1.5">
+                        <span className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider block">
+                          Plausible Explanations
+                        </span>
+                        <ul className="space-y-1 text-slate-400 text-[11px] list-disc list-inside">
+                          {aiReport.possible_explanations.map((exp, idx) => (
+                            <li key={idx}>{exp}</li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-1.5">
+                        <span className="text-[11px] font-semibold text-amber-400 uppercase tracking-wider block">
+                          Missing or Unverified Telemetry
+                        </span>
+                        <ul className="space-y-1 text-slate-400 text-[11px] list-disc list-inside">
+                          {aiReport.missing_evidence.map((miss, idx) => (
+                            <li key={idx}>{miss}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* D. MITRE ATT&CK Mapping */}
+                    {aiReport.mitre_attack_mappings && aiReport.mitre_attack_mappings.length > 0 && (
+                      <div className="space-y-2">
+                        <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+                          MITRE ATT&CK Mappings ({aiReport.mitre_attack_mappings.length})
+                        </span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {aiReport.mitre_attack_mappings.map((m, idx) => (
+                            <div
+                              key={idx}
+                              className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-xs space-y-1"
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-mono font-bold text-indigo-400">{m.technique_id}</span>
+                                <span className="text-[10px] text-slate-500 font-mono">{m.tactic}</span>
+                              </div>
+                              <div className="font-semibold text-slate-200">{m.technique_name}</div>
+                              <p className="text-[11px] text-slate-400 leading-tight">{m.justification}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* E. Recommended Actions */}
+                    {aiReport.recommended_actions && aiReport.recommended_actions.length > 0 && (
+                      <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-1.5">
+                        <span className="text-[11px] font-semibold text-cyan-400 uppercase tracking-wider block">
+                          Defensive Investigation Recommendations
+                        </span>
+                        <ul className="space-y-1 text-slate-300 text-[11px] list-disc list-inside">
+                          {aiReport.recommended_actions.map((act, idx) => (
+                            <li key={idx}>{act}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* F. Analyst Feedback & Validation Bar */}
+                    <div className="p-3.5 rounded-lg bg-slate-950 border border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] text-slate-400">Analyst Review:</span>
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            aiReport.analyst_review_status === 'USEFUL'
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                              : aiReport.analyst_review_status === 'INCORRECT'
+                              ? 'bg-red-500/10 text-red-400 border border-red-500/30'
+                              : 'bg-slate-800 text-slate-400'
+                          }`}
+                        >
+                          {aiReport.analyst_review_status}
+                        </span>
+                        {aiReport.reviewed_by && (
+                          <span className="text-[10px] text-slate-500">by {aiReport.reviewed_by}</span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleFeedback('USEFUL')}
+                          disabled={feedbackSubmitting}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs border border-emerald-500/30 transition-colors"
+                        >
+                          <ThumbsUp className="w-3.5 h-3.5" />
+                          Mark Useful
+                        </button>
+                        <button
+                          onClick={() => handleFeedback('INCORRECT')}
+                          disabled={feedbackSubmitting}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs border border-red-500/30 transition-colors"
+                        >
+                          <ThumbsDown className="w-3.5 h-3.5" />
+                          Mark Incorrect
+                        </button>
+                        <button
+                          onClick={() => handleFeedback('NEEDS_REVIEW')}
+                          disabled={feedbackSubmitting}
+                          className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition-colors"
+                        >
+                          Needs Review
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

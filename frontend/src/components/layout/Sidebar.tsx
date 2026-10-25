@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   ArrowUpRight,
   BookOpen,
+  Bot,
   ChevronLeft,
   ChevronRight,
   Globe,
@@ -28,6 +29,7 @@ export type NavigationTab =
   | 'network'
   | 'alerts'
   | 'investigations'
+  | 'ai-analyst'
   | 'health'
   | 'settings'
   | 'docs';
@@ -87,6 +89,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       items: [
         { id: 'alerts', label: 'Alerts Console', icon: ShieldAlert },
         { id: 'investigations', label: 'Investigation Workspace', icon: Search },
+        { id: 'ai-analyst', label: 'AI SOC Analyst', icon: Bot, badge: 'Phase 9' },
       ],
     },
     {

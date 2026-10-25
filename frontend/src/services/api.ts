@@ -824,3 +824,151 @@ export async function fetchDashboardSearch(query: string, limit: number = 15): P
   }
   return response.json();
 }
+
+// =========================================================================
+// Phase 9 AI-Powered SOC Analyst & Security Investigation API Calls
+// =========================================================================
+
+export async function fetchAIStatus(): Promise<import('../types/ai').AIStatusResponse> {
+  const url = `${API_BASE_URL}/api/v1/ai/status`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load AI subsystem status (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchAIModels(): Promise<import('../types/ai').AIModelInfo[]> {
+  const url = `${API_BASE_URL}/api/v1/ai/models`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load AI models catalog (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function analyzeInvestigation(
+  investigationId: string,
+  analystQuery?: string,
+  forceRefresh: boolean = false,
+): Promise<import('../types/ai').AIInvestigationReportResponse> {
+  const url = `${API_BASE_URL}/api/v1/ai/investigations/${investigationId}/analyze`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({
+      analyst_query: analystQuery || null,
+      force_refresh: forceRefresh,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw new Error(errorBody.detail || `Failed to analyze investigation with AI (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchInvestigationReports(
+  investigationId: string,
+): Promise<import('../types/ai').AIInvestigationReportResponse[]> {
+  const url = `${API_BASE_URL}/api/v1/ai/investigations/${investigationId}/reports`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load AI investigation reports (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchReportDetail(
+  reportId: string,
+): Promise<import('../types/ai').AIInvestigationReportResponse> {
+  const url = `${API_BASE_URL}/api/v1/ai/reports/${reportId}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load AI report details (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function submitReportFeedback(
+  reportId: string,
+  status: import('../types/ai').AnalystReviewStatus,
+  notes?: string,
+  analystName: string = 'soc_analyst',
+): Promise<import('../types/ai').AIInvestigationReportResponse> {
+  const url = `${API_BASE_URL}/api/v1/ai/reports/${reportId}/feedback`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({
+      status,
+      notes: notes || null,
+      analyst_name: analystName,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw new Error(errorBody.detail || `Failed to submit report feedback (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function sendAIChatMessage(payload: {
+  message: string;
+  sessionId?: string;
+  investigationId?: string;
+  alertId?: string;
+  analystName?: string;
+}): Promise<import('../types/ai').ChatMessageResponse> {
+  const url = `${API_BASE_URL}/api/v1/ai/chat`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({
+      message: payload.message,
+      session_id: payload.sessionId || null,
+      investigation_id: payload.investigationId || null,
+      alert_id: payload.alertId || null,
+      analyst_name: payload.analystName || 'soc_analyst',
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw new Error(errorBody.detail || `Failed to send AI chat message (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchAIConversations(
+  limit: number = 20,
+): Promise<import('../types/ai').ConversationSessionSummary[]> {
+  const url = `${API_BASE_URL}/api/v1/ai/conversations?limit=${limit}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load AI conversations (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchAIConversationDetail(
+  sessionId: string,
+): Promise<import('../types/ai').ConversationSessionDetail> {
+  const url = `${API_BASE_URL}/api/v1/ai/conversations/${sessionId}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load AI conversation details (${response.status})`);
+  }
+  return response.json();
+}

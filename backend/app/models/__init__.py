@@ -29,6 +29,12 @@ from app.models.network import (
     NetworkSensor,
     ThreatIntelIndicator,
 )
+from app.models.ai import (
+    AIInvestigationReport,
+    AIConversationSession,
+    AIConversationMessage,
+    AIToolAuditEvent,
+)
 
 __all__ = [
     "Base",
@@ -55,4 +61,8 @@ __all__ = [
     "NetworkIngestionJob",
     "NetworkBaseline",
     "ThreatIntelIndicator",
+    "AIInvestigationReport",
+    "AIConversationSession",
+    "AIConversationMessage",
+    "AIToolAuditEvent",
 ]

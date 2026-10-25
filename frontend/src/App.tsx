@@ -6,6 +6,7 @@ import { NavigationTab } from './components/layout/Sidebar';
 import { OverviewPage } from './pages/OverviewPage';
 import { AlertsConsolePage } from './pages/AlertsConsolePage';
 import { InvestigationWorkspacePage } from './pages/InvestigationWorkspacePage';
+import { AISocAnalystPage } from './pages/AISocAnalystPage';
 import { SystemHealthPage } from './pages/SystemHealthPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { NetworkIntelligencePage } from './pages/NetworkIntelligencePage';
@@ -89,6 +90,9 @@ export const App: React.FC = () => {
             initialInvestigationId={targetId}
             onNavigateToTab={handleSelectTab}
           />
+        )}
+        {currentTab === 'ai-analyst' && (
+          <AISocAnalystPage />
         )}
         {currentTab === 'network' && (
           <NetworkIntelligencePage />

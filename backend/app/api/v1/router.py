@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter
 from app.api.v1.endpoints import (
+    ai,
     alerts,
     dashboard,
     detection,
@@ -15,6 +16,12 @@ from app.api.v1.endpoints import (
 )
 
 api_v1_router = APIRouter()
+
+# Phase 9: AI-Powered SOC Analyst & Security Investigation routes
+api_v1_router.include_router(
+    ai.router,
+    tags=["AI SOC Analyst"],
+)
 
 # Phase 8: Centralized SOC Dashboard & Unified Search routes
 api_v1_router.include_router(

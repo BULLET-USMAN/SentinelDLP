@@ -13,6 +13,40 @@ export const DocumentationPage: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        {/* Phase 9 Implemented */}
+        <div style={{
+          backgroundColor: 'var(--bg-card)',
+          border: '1px solid rgba(16, 185, 129, 0.4)',
+          borderRadius: '8px',
+          padding: '1.5rem',
+        }}>
+          <h2 style={{ fontSize: '1.15rem', color: '#10b981', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>✓</span> Phase 9 Active: AI-Powered SOC Analyst, Local LLM Integration & Intelligent Security Investigation
+          </h2>
+          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Modular Local AI Provider & Deterministic Mock Architecture:</strong>
+              Pluggable provider interface featuring a zero-dependency deterministic Mock AI provider for local testing and full HTTP readiness for local Ollama inference daemons (targeting <code>llama3.2:3b</code> on Windows/Linux).
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Server-Controlled Read-Only Investigation Tools:</strong>
+              Server-enforced tool execution harness (<code>get_alert</code>, <code>get_risk_assessment</code>, <code>get_file_classification</code>, <code>get_file_activity</code>, <code>get_investigation_timeline</code>, <code>get_exfiltration_evidence</code>, <code>get_network_events</code>, <code>get_sensor_status</code>, <code>get_mitre_technique</code>) bounded to max 6 calls per investigation with immutable PostgreSQL audit logging.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Offline MITRE ATT&amp;CK Enterprise Catalog &amp; Anti-Hallucination:</strong>
+              Local offline catalog of DLP-relevant techniques (T1074.001, T1560.001, T1567.002, T1048.003, T1071.004, etc.) and post-generation validation rejecting fabricated record identifiers or invalid technique codes.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Data Privacy &amp; Indirect Prompt Injection Resistance:</strong>
+              Zero-leakage credential redaction (passwords, tokens, payment cards, SSNs) and defensive enclosure of untrusted telemetry strings inside <code>&lt;untrusted_telemetry&gt;</code> tags.
+            </li>
+            <li style={{ display: 'flex', gap: '0.5rem' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>• Interactive AI SOC Analyst Console &amp; Workspace Integration:</strong>
+              Interactive chat assistant with conversation memory, investigation context selector, prompt quick-starts, plus deep integration into the Investigation Workspace with analyst feedback review (USEFUL, INCORRECT, NEEDS_REVIEW).
+            </li>
+          </ul>
+        </div>
+
         {/* Phase 8 Implemented */}
         <div style={{
           backgroundColor: 'var(--bg-card)',
