@@ -336,20 +336,16 @@ export const DocumentationPage: React.FC = () => {
           padding: '1.5rem',
         }}>
           <h2 style={{ fontSize: '1.15rem', color: 'var(--accent-blue)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span>⏳</span> Future Phase Roadmap (Strictly Deferred)
+            <span>⏳</span> Future Phase Roadmap (Planned)
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', fontSize: '0.85rem' }}>
             <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-primary)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
-              <h4 style={{ color: 'var(--text-primary)', marginBottom: '0.25rem' }}>Phase 4: Endpoint Activity Monitoring</h4>
-              <p style={{ color: 'var(--text-muted)' }}>Authorized local workstation event monitoring, USB device insertion, and clipboard operations.</p>
+              <h4 style={{ color: 'var(--text-primary)', marginBottom: '0.25rem' }}>Phase 11: Enterprise Multi-Tenancy & Fleet Orchestration</h4>
+              <p style={{ color: 'var(--text-muted)' }}>Distributed lightweight cross-platform agents, tenant isolation boundaries, and central management policy distribution.</p>
             </div>
             <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-primary)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
-              <h4 style={{ color: 'var(--text-primary)', marginBottom: '0.25rem' }}>Phase 5: Exfiltration Heuristics</h4>
-              <p style={{ color: 'var(--text-muted)' }}>Volume anomalies, off-hours exfiltration attempts, and suspicious transfer behavior.</p>
-            </div>
-            <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-primary)', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
-              <h4 style={{ color: 'var(--text-primary)', marginBottom: '0.25rem' }}>Phase 6: AI Incident Assistant</h4>
-              <p style={{ color: 'var(--text-muted)' }}>LLM-powered threat summaries, incident risk scoring, and security analyst investigation workflows.</p>
+              <h4 style={{ color: 'var(--text-primary)', marginBottom: '0.25rem' }}>Phase 12: Automated Containment & Response</h4>
+              <p style={{ color: 'var(--text-muted)' }}>Adaptive endpoint quarantine, zero-trust session revocation, and policy-driven remediation playbooks.</p>
             </div>
           </div>
         </div>

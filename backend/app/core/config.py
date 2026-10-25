@@ -16,7 +16,7 @@ class Settings(BaseSettings):
 
     # Application Metadata
     APP_NAME: str = "SentinelDLP"
-    APP_VERSION: str = "0.2.0"
+    APP_VERSION: str = "0.10.0"
     ENVIRONMENT: str = Field(default="development", description="Current execution environment")
     DEBUG: bool = Field(default=False, description="Debug mode flag")
     API_V1_PREFIX: str = "/api/v1"
