@@ -223,7 +223,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="p-3 border-t border-slate-800/80 bg-slate-950/80">
           {!isCollapsed ? (
             <div className="flex items-center justify-between text-[11px] text-slate-400">
-              <span className="font-mono">v0.11.0 · Phase 11</span>
+              <span className="font-mono">v1.0.0 · Production Ready</span>
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             </div>
           ) : (
